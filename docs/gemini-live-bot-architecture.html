@@ -179,8 +179,8 @@
         <div class="pulse-dot"></div>
         <h1>GEMINI LIVE BOT // SYSTEM ARCHITECTURE</h1>
         <span class="badge">SPEC-20260907</span>
-        <span class="badge">ADK v2.3.0</span>
-        <span class="badge">gemini-3.1-flash-preview</span>
+        <span class="badge">ADK v2.8.0</span>
+        <span class="badge">gemini-3.1-flash-live-preview</span>
       </div>
       <p class="subtitle">
         Enterprise Multimodal Voice Agent with Google Agent Development Kit (ADK), Native Thai Audio Streaming, and Hierarchical Sub-Agent Delegation (Auth Orchestrator → Flight Booking & Complaint Care).
@@ -227,12 +227,12 @@
       
       <!-- Sub-box: ADK Live Runner -->
       <rect x="80" y="215" width="450" height="70" rx="6" fill="#0f172a" stroke="#1e293b"/>
-      <text x="100" y="242" fill="#f8fafc" font-size="13" font-weight="600">Google ADK Live Runner (v2.3.0)</text>
+      <text x="100" y="242" fill="#f8fafc" font-size="13" font-weight="600">Google ADK Live Runner (v2.8.0)</text>
       <text x="100" y="265" fill="#94a3b8" font-size="11">Session context, audio buffers, tool dispatch loop & /healthz probe</text>
 
-      <!-- Sub-box: Gemini 3.1 Flash Preview -->
+      <!-- Sub-box: Gemini 3.1 Flash Live Preview -->
       <rect x="570" y="215" width="450" height="70" rx="6" fill="#0f172a" stroke="#0284c7"/>
-      <text x="590" y="242" fill="#38bdf8" font-size="13" font-weight="600">Vertex AI Gemini 3.1 Flash Preview</text>
+      <text x="590" y="242" fill="#38bdf8" font-size="13" font-weight="600">Gemini Live API (3.1 Flash Live Preview)</text>
       <text x="590" y="265" fill="#94a3b8" font-size="11">Real-time Thai speech recognition, reasoning & audio synthesis</text>
 
       <!-- Connection 2 -->
@@ -308,7 +308,7 @@
           <span>Voice & Gemini Live Pipeline</span>
         </div>
         <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
-          Utilizes <code>gemini-3.1-flash-preview</code> over WebSockets with Google ADK's native live runner. Directly ingests 16kHz audio frames and streams back synthesized Thai speech with sub-300ms perceptual latency.
+          Utilizes <code>gemini-3.1-flash-live-preview</code> over WebSockets with Google ADK's native live runner. Directly ingests 16kHz audio frames and streams back synthesized Thai speech with sub-300ms perceptual latency.
         </p>
         <table class="spec-table">
           <tr><td>Audio In</td><td>16,000 Hz 16-bit PCM</td></tr>
@@ -350,7 +350,7 @@
 
     <footer class="footer">
       <div>Repository: <code>https://github.com/pantana-na/gemini-live-bot.git</code></div>
-      <div>Project: <code>cs-poc-y03r7kmfyov4kilzg50fd7s</code> | Region: <code>us-central1</code></div>
+      <div>Project: <code>your-gcp-project-id</code> | Region: <code>us-central1</code></div>
     </footer>
   </div>
 </body>

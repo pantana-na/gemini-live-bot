@@ -12,12 +12,14 @@ The initial design phase for the **Gemini Live Bot Platform** has been updated i
 
 1. **Real-World Google Search Grounding for Flights:** Flight discovery operates strictly against live Google Search web results (via Google ADK `google_search` tool grounding). No mock flight data is used for searches; live airline schedules, flight numbers, and fares are dynamically retrieved and curated into Top 3 options.
 2. **Strict Scope Enforcement & Polite Hangup:** If a customer asks about topics outside the 2 supported capabilities (flight booking or complaints), the orchestrator strictly declines to participate in respectful Thai, explains its operational scope, bids farewell, and executes `terminate_call` to cleanly close the WebSocket audio stream.
-3. **Brownfield Baseline Codified:** [`specs/baseline/system-overview.md`](../baseline/system-overview.md) detailing Google ADK v2.3.0, `agents-cli`, Python 3.13, and WebSocket audio streaming infrastructure.
-4. **Comprehensive Feature Specification:** [`specs/features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md`](../features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md)
-5. **Technical Architecture Documentation & Visuals:**
+3. **Gemini 3.1 Flash Live Preview via API Key:** Verified and tested bidirectional live audio streaming against `gemini-3.1-flash-live-preview` using Google AI Studio Developer API Key (`GEMINI_API_KEY`). Real-time audio streaming verified receiving 14 native audio chunks.
+4. **Brownfield Baseline Codified:** [`specs/baseline/system-overview.md`](../baseline/system-overview.md) detailing Google ADK v2.8.0, `agents-cli`, Python 3.13, and WebSocket audio streaming infrastructure.
+5. **Comprehensive Feature Specification:** [`specs/features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md`](../features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md)
+6. **Technical Architecture Documentation & Visuals:**
    - Architecture Markdown Guide: [`docs/gemini-live-bot-architecture.md`](../../docs/gemini-live-bot-architecture.md)
    - Interactive Standalone HTML Diagram: [`docs/gemini-live-bot-architecture.html`](../../docs/gemini-live-bot-architecture.html)
-6. **Specification Registry Synchronized:** [`specs/README.md`](../README.md) updated with active links.
+7. **Specification Registry Synchronized:** [`specs/README.md`](../README.md) updated with active links.
+8. **Credential Sanitization:** Real API key isolated in `.env` (gitignored). `.env.example` sanitized with placeholder project IDs and service accounts.
 
 ---
 
@@ -25,10 +27,10 @@ The initial design phase for the **Gemini Live Bot Platform** has been updated i
 
 | Step | Scope / Deliverables | Planned Test Suites | Status |
 | :--- | :--- | :--- | :--- |
-| **Step 0** | **Design & Specification Phase**<br>Baseline SDD, Feature Spec, Architecture HTML/MD, 20 Mock Users Schema, Real Search & Polite Hangup Spec | N/A (Documentation & Review) | **COMPLETED** |
+| **Step 0** | **Design & Specification Phase**<br>Baseline SDD, Feature Spec, Architecture HTML/MD, 20 Mock Users Schema, Real Search & Polite Hangup Spec, API Key Live Streaming Verification | N/A (Documentation & Review) | **COMPLETED** |
 | **Step 1** | **Data Models & Mock Datastores**<br>`app/models.py`, `app/mock_data.py`, 20 Thai users, B.E./C.E. normalizers, booking ledger, complaint store (no mock flights) | `tests/test_step1_models.py` (Unit)<br>`tests/test_step1_pbt.py` (PBT) | *Pending Inspection Approval* |
 | **Step 2** | **Domain Tools & Business Logic**<br>`auth_tools.py`, `flight_tools.py` (Real Search + Top 3 ranker), `complaint_tools.py`, `call_control_tools.py` (`terminate_call`) | `tests/test_step2_tools.py` (Unit)<br>`tests/test_step2_pbt.py` (PBT) | *Pending Step 1* |
-| **Step 3** | **ADK Multi-Agent Orchestration**<br>`app/agent.py`, `gemini-3.1-flash-preview` live config, Thai prompts, delegation & hangup routing | `tests/test_step3_agents.py` (Unit)<br>`tests/test_step3_pbt.py` (PBT) | *Pending Step 2* |
+| **Step 3** | **ADK Multi-Agent Orchestration**<br>`app/agent.py`, `gemini-3.1-flash-live-preview` live config via API Key, Thai prompts, delegation & hangup routing | `tests/test_step3_agents.py` (Unit)<br>`tests/test_step3_pbt.py` (PBT) | *Pending Step 2* |
 | **Step 4** | **FastAPI Server & Liveness Probe**<br>`app/server.py`, WebSocket endpoint with clean hangup handling, `/healthz` probe (Rule 6) | `tests/test_step4_server.py` (Unit)<br>`tests/test_step4_pbt.py` (PBT) | *Pending Step 3* |
 | **Step 5** | **Security Audit & CI/CD Packaging**<br>CodeMender scan (`cm find`, `cm verify`), Dockerfile, Cloud Build | Full Regression Suite<br>`docs/codemender-*.md` | *Pending Step 4* |
 

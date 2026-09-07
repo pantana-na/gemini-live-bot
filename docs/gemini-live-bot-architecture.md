@@ -3,8 +3,8 @@
 > Multimodal Voice-First Intelligent Customer Service Platform with Google ADK, Gemini 3.1 Flash Preview, and Hierarchical Multi-Agent Delegation.
 
 - **Status:** Designed & Specified
-- **Target Foundation Model:** `gemini-3.1-flash-preview` (Gemini Multimodal Live BidiStream)
-- **Agent Framework:** Google Agent Development Kit (`google-adk v2.3.0`) & `agents-cli`
+- **Target Foundation Model:** `gemini-3.1-flash-live-preview` (Gemini Multimodal Live BidiStream via Google AI Studio API Key)
+- **Agent Framework:** Google Agent Development Kit (`google-adk v2.8.0`) & `agents-cli`
 - **Primary Language:** Thai (ภาษาไทย)
 - **Interactive Companion Diagram:** [`docs/gemini-live-bot-architecture.html`](./gemini-live-bot-architecture.html)
 
@@ -35,7 +35,7 @@
 |                                              |                                                     |
 |                                              v                                                     |
 |    +------------------------------------------------------------------------------------------+    |
-|    |  Vertex AI Gemini Multimodal Live API (gemini-3.1-flash-preview)                         |    |
+|    |  Gemini Live Multimodal Engine (gemini-3.1-flash-live-preview via API Key)               |    |
 |    |  - Real-time Audio-to-Audio reasoning & Speech-to-Speech synthesis in Thai                 |    |
 |    |  - Integrated Function Calling & Tool Execution Loop                                     |    |
 |    +------------------------------------------------------------------------------------------+    |
@@ -87,20 +87,21 @@
 ### 2.1 Audio & Streaming Protocol
 - **Transport:** WebSocket over TLS (`wss://`) terminating on Cloud Run FastAPI service.
 - **Payload Format:** 16,000 Hz, 16-bit linear PCM mono audio input; 24,000 Hz PCM audio output.
-- **Model Endpoint:** Vertex AI Gemini Multimodal Live streaming endpoint using `gemini-3.1-flash-preview`.
+- **Model Endpoint:** Gemini Developer API Multimodal Live streaming endpoint using `gemini-3.1-flash-live-preview` (authenticated via `GEMINI_API_KEY` with Vertex AI toggle support).
 - **Latency Optimization:** Direct streaming chunking; function calling execution happens in an asynchronous event loop without dropping the voice channel.
 
 ### 2.2 Agent Delegation & Session Transfer
 - **State Preservation:** When `thai_customer_orchestrator` transfers control to `flight_booking_agent` or `complaint_agent`, customer authentication details (`customer_id`, `name_th`, `loyalty_tier`) are passed in `Session.state`.
 - **Context Injection:** Sub-agents inherit the conversational memory and greeting context so the customer does not have to repeat their identity.
 
-### 2.3 Mock Data Stores (In-Memory MVP)
+### 2.3 Data Stores & Search Grounding
 1. **Mock Customer Store (20 Records):**
    - Realistic Thai naming distribution and Buddhist calendar birthdate conversion.
    - Dual-language matching (Thai script & English romanization).
-2. **Mock Flight Engine:**
-   - Multi-airline schedule generator (Thai Airways, Bangkok Airways, AirAsia).
-   - Top-3 selection algorithm prioritizing price and schedule convenience.
+2. **Real-Time Flight Discovery Engine:**
+   - Real-world Google Search Grounding (no mock flights).
+   - Dynamic schedule extraction and Top-3 selection algorithm prioritizing price and schedule convenience.
+   - Confirmed bookings recorded to in-memory PNR ledger.
 3. **Mock Complaint Ticket Store:**
    - Sequential ticket generation: `TKT-YYYYMMDD-XXXX`.
    - Category mapping: Flight Delay, Baggage, In-flight Service, Ticketing, Ground Staff.

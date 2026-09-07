@@ -6,10 +6,10 @@
 ### 1.1 Context & Motivation
 Modern contact centers and customer service interfaces struggle with rigid IVR trees and sluggish turn-based chatbots. Customers calling airlines or travel service desks in Thailand face frustrating wait times, fragmented verification steps, and unnatural automated responses. 
 
-By leveraging **Google Agent Development Kit (ADK v2.3.0)**, **Google Agents CLI (`agents-cli`)**, and the latest **Gemini Multimodal Live API (`gemini-3.1-flash-preview`)**, this project delivers a real-time, bidirectional voice-enabled customer service platform operating natively in **Thai**. The architecture features a hierarchical multi-agent structure orchestrated by a root agent, delegating domain tasks to specialized sub-agents for flight booking and complaint resolution while maintaining conversation context and identity authentication.
+By leveraging **Google Agent Development Kit (ADK v2.8.0)**, **Google Agents CLI (`agents-cli`)**, and the latest **Gemini Multimodal Live API (`gemini-3.1-flash-live-preview`)** via Google AI Studio API Key authentication (`GOOGLE_GENAI_USE_VERTEXAI=FALSE`), this project delivers a real-time, bidirectional voice-enabled customer service platform operating natively in **Thai**. The architecture features a hierarchical multi-agent structure orchestrated by a root agent, delegating domain tasks to specialized sub-agents for flight booking and complaint resolution while maintaining conversation context and identity authentication.
 
 ### 1.2 Goals
-- **Real-Time Voice Interaction:** Low-latency bidirectional audio streaming using `gemini-3.1-flash-preview` over WebSockets.
+- **Real-Time Voice Interaction:** Low-latency bidirectional audio streaming using `gemini-3.1-flash-live-preview` over WebSockets.
 - **Natural Thai Conversational Experience:** Professional, polite Thai service register (สุภาพ เป็นธรรมชาติ ใช้หางเสียง ครับ/ค่ะ เหมาะสม) across all agent personas.
 - **Hierarchical Multi-Agent Architecture:**
   - `root_agent` (Orchestrator & Auth): Welcomes customer, authenticates identity against a customer database (matching name and birthdate), detects user intent, and seamlessly delegates to sub-agents.
@@ -360,7 +360,7 @@ Alignment with the 10 core engineering rules defined in `_agents/rules/devops_se
 ### Step 3: Google ADK Multi-Agent Orchestration & Prompts
 - **Implementation:**
   - Create `app/agent.py`: Define `root_agent` (`thai_customer_orchestrator`) and sub-agents `flight_booking_agent` and `complaint_agent`.
-  - Configure `gemini-3.1-flash-preview` as the foundation model for live bidirectional streaming.
+  - Configure `gemini-3.1-flash-live-preview` as the foundation model for live bidirectional streaming via Gemini Developer API key (`GEMINI_API_KEY`).
   - Configure Thai instructions, polite greeting, auth checkpoint, and native sub-agent delegation.
   - Session state propagation: ensure `customer_id` and verified identity pass into sub-agent contexts.
 - **Unit Tests (`tests/test_step3_agents.py`):**
