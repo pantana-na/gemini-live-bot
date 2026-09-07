@@ -13,12 +13,13 @@ By leveraging **Google Agent Development Kit (ADK v2.3.0)**, **Google Agents CLI
 - **Natural Thai Conversational Experience:** Professional, polite Thai service register (สุภาพ เป็นธรรมชาติ ใช้หางเสียง ครับ/ค่ะ เหมาะสม) across all agent personas.
 - **Hierarchical Multi-Agent Architecture:**
   - `root_agent` (Orchestrator & Auth): Welcomes customer, authenticates identity against a customer database (matching name and birthdate), detects user intent, and seamlessly delegates to sub-agents.
-  - `flight_booking_agent`: Gathers departure/arrival locations and dates, executes Google Search / mock schedule grounding, presents Top 3 options, and confirms flight booking.
+    - **Strict Scope Enforcement & Polite Hangup:** If the customer's intent does not match the 2 supported capabilities (flight booking or complaints), the orchestrator strictly declines to participate, explains its limited scope politely in Thai, bids farewell, and terminates/hangs up the call (`terminate_call`).
+  - `flight_booking_agent`: Gathers departure/arrival locations and dates, executes **actual real-time Google Search grounding (no mock flights)** to retrieve live schedules and fares, curates the Top 3 options, and confirms flight booking.
   - `complaint_agent`: Empathizes with user grievance, captures incident situation overview and timestamp, categorizes issue severity, and generates ticket records.
 - **Mock Data Layer:**
   - Mock Customer Store with 20 realistic Thai profiles (Thai names, English transliterations, birthdates, tier status).
-  - Mock Flight Inventory with domestic and international routes, schedules, prices (THB), and booking ledger.
   - Mock Complaint Ticket Store tracking resolution status and incident telemetry.
+  - Mock Booking Confirmation Ledger recording confirmed PNR reservations (while flight discovery itself runs on actual Google Search).
 - **Enterprise DevOps & Security Compliance:** 100% alignment with the 10 SDD DevSecOps standards (unified `.env`, Cloud Run readiness, property testing, and SAST).
 
 ### 1.3 Non-Goals
@@ -41,12 +42,13 @@ graph TD
         LiveEngine --> RootAgent[Root Orchestrator Agent: thai_customer_orchestrator]
         RootAgent -->|Delegate Intent: flight_booking| FlightAgent[Flight Booking Agent: flight_booking_agent]
         RootAgent -->|Delegate Intent: complaint_issue| ComplaintAgent[Complaint Handling Agent: complaint_agent]
+        RootAgent -->|Out-of-Scope Intent: terminate_call| HangupAction[Polite Decline & Hangup Call]
     end
 
-    subgraph Mock Data & Grounding Layer
+    subgraph Data & Grounding Layer
         RootAgent -->|authenticate_customer| CustomerDB[(Mock Customer DB - 20 Users)]
-        FlightAgent -->|search_flights / book_flight| FlightDB[(Mock Flight Schedule & Booking DB)]
-        FlightAgent -->|grounded_flight_search| GoogleSearchTool[Google Search Grounding]
+        FlightAgent -->|Actual Flight Search Tool| GoogleSearchTool[Real Google Search Grounding - Live Web]
+        FlightAgent -->|confirm_flight_booking| BookingDB[(Mock Booking Ledger & PNR Store)]
         ComplaintAgent -->|record_complaint| ComplaintDB[(Mock Complaint Ticket DB)]
     end
 ```
@@ -212,13 +214,14 @@ The mock database pre-populates 20 diverse, realistic Thai customer records span
     1. ทักทายลูกค้าอย่างอบอุ่น
     2. สอบถามชื่อ-นามสกุล และวันเดือนปีเกิดเพื่อยืนยันตัวตนผ่านฟังก์ชัน `authenticate_customer`
     3. บันทึกสถานะการยืนยันตัวตนลงใน `session.state`
-    4. ทำความเข้าใจความต้องการของลูกค้า:
+    4. ทำความเข้าใจความต้องการของลูกค้า (Intent Identification):
        - หากต้องการจองตั๋วเครื่องบิน/เช็คเที่ยวบิน -> โอนสายไปยัง `flight_booking_agent`
        - หากต้องการร้องเรียน/แจ้งปัญหาการบริการ -> โอนสายไปยัง `complaint_agent`
-       - หากถามเรื่องทั่วไป -> ตอบอย่างสุภาพ หรือแนะนำบริการที่เกี่ยวข้อง
+       - **หากเรื่องที่สอบถามไม่เกี่ยวข้องกับ 2 บริการนี้ (Out-of-Scope Intent):** ปฏิเสธการให้บริการอย่างสุภาพ ชี้แจงว่าระบบรองรับเฉพาะการจองตั๋วเครื่องบินและการรับเรื่องร้องเรียนเท่านั้น กล่าวขอบคุณและอำลา จากนั้นเรียกเครื่องมือ `terminate_call(reason)` เพื่อตัดสายสนทนาทันที
 - **Tools:**
   - `authenticate_customer(name: str, birthdate: str) -> AuthResult`
   - `check_customer_status(customer_id: str) -> dict`
+  - `terminate_call(reason: str) -> dict`: ปฏิเสธและวางสายเมื่อคำขออยู่นอกเหนือขอบเขต
 
 ### 4.2 Flight Booking Sub-Agent (`flight_booking_agent`)
 - **System Instruction:**
@@ -227,13 +230,14 @@ The mock database pre-populates 20 diverse, realistic Thai customer records span
   - หน้าที่:
     1. รับช่วงต่อและทักทายลูกค้าด้วยชื่อที่ผ่านการยืนยันตัวตนแล้ว
     2. สอบถามข้อมูลสำคัญ: เมืองต้นทาง (เช่น กรุงเทพฯ BKK), เมืองปลายทาง (เช่น โตเกียว NRT), วันเดินทางไป, และวันเดินทางกลับ (ถ้ามี)
-    3. เรียกใช้ฟังก์ชัน `search_flights` (พร้อมเชื่อมโยง Google Search หรือ Mock Flight Engine)
+    3. เรียกใช้ฟังก์ชัน `search_real_flights` โดยใช้ **Google Search Tool Grounding จริง (ไม่มีข้อมูล Mock สำหรับเที่ยวบิน)** เพื่อดึงข้อมูลตารางบิน สายการบิน และราคาตั๋วเครื่องบินจริงจากเว็บ
     4. นำเสนอตัวเลือกที่ดีที่สุด **Top 3 ตัวเลือก** (ระบุ สายการบิน, เที่ยวบิน, เวลาออก-ถึง, และราคาในหน่วย บาท THB)
     5. สรุปและขอคำยืนยันจากลูกค้าว่าต้องการสำรองที่นั่งเที่ยวบินใด
     6. เรียกใช้ฟังก์ชัน `confirm_flight_booking` และแจ้งรหัสการจอง (Booking Reference / PNR) ให้ลูกค้าทราบ
 - **Tools:**
-  - `search_flights(departure_city: str, arrival_city: str, departure_date: str, return_date: Optional[str] = None) -> List[FlightOption]`
-  - `confirm_flight_booking(flight_number: str, customer_id: Optional[str] = None, passenger_name: Optional[str] = None) -> FlightBookingConfirmation`
+  - `google_search`: Google ADK built-in real-time search tool
+  - `search_real_flights(departure_city: str, arrival_city: str, departure_date: str, return_date: Optional[str] = None) -> List[FlightOption]`
+  - `confirm_flight_booking(flight_number: str, airline: str, price_thb: float, customer_id: Optional[str] = None, passenger_name: Optional[str] = None) -> FlightBookingConfirmation`
 
 ### 4.3 Complaint Sub-Agent (`complaint_agent`)
 - **System Instruction:**
@@ -269,11 +273,15 @@ stateDiagram-v2
     AUTH_VERIFIED --> INTENT_ROUTING: Ask user intent
     INTENT_ROUTING --> FLIGHT_FLOW: "อยากจองตั๋ว / หาเที่ยวบิน"
     INTENT_ROUTING --> COMPLAINT_FLOW: "เครื่องดีเลย์ / บริการไม่ดี / กระเป๋าหาย"
+    INTENT_ROUTING --> OUT_OF_SCOPE: Any query outside Flight/Complaint
+    
+    OUT_OF_SCOPE --> DECLINE_AND_HANGUP: Polite Thai refusal & farewell
+    DECLINE_AND_HANGUP --> [*]: terminate_call tool executed (hangup)
     
     state FLIGHT_FLOW {
         [*] --> GATHER_CRITERIA: Origin, Destination, Date
-        GATHER_CRITERIA --> SEARCHING: Invoke search_flights
-        SEARCHING --> PRESENT_TOP3: Present 3 choices with price & time
+        GATHER_CRITERIA --> REAL_SEARCHING: Execute Google Search Grounding (Live Web)
+        REAL_SEARCHING --> PRESENT_TOP3: Present 3 choices with price & time
         PRESENT_TOP3 --> CONFIRM_CHOICE: Customer chooses flight
         CONFIRM_CHOICE --> BOOKING_SUCCESS: Generate PNR code
     }
@@ -318,8 +326,8 @@ Alignment with the 10 core engineering rules defined in `_agents/rules/devops_se
 
 ### Step 1: Data Contracts, Schemas & Mock Datastores
 - **Implementation:**
-  - Create `app/models.py`: Pydantic models for Customer, Flight, Booking, and Complaint.
-  - Create `app/mock_data.py`: Pre-seeded in-memory store with 20 Thai users, domestic/international flight schedules, and complaint repositories.
+  - Create `app/models.py`: Pydantic models for Customer, Real Flight Options, Booking Confirmation, and Complaint.
+  - Create `app/mock_data.py`: Pre-seeded in-memory store with 20 Thai users, complaint ticket store, and confirmed booking ledger (no mock flights for search; flights come directly from real Google Search).
   - Date and name normalizers handling Thai calendar years (พ.ศ. vs ค.ศ., e.g., 2533 -> 1990) and Thai spacing.
 - **Unit Tests (`tests/test_step1_models.py`):**
   - Verify all 20 mock users are loaded with valid attributes.
@@ -333,17 +341,20 @@ Alignment with the 10 core engineering rules defined in `_agents/rules/devops_se
 ### Step 2: Agent Tools & Domain Logic Handlers
 - **Implementation:**
   - Create `app/tools/auth_tools.py`: `authenticate_customer` matching name and birthdate with fuzzy Thai name tolerance.
-  - Create `app/tools/flight_tools.py`: `search_flights` with ranking for Top 3 cheapest/fastest options, and `confirm_flight_booking`.
+  - Create `app/tools/flight_tools.py`: `search_real_flights` utilizing Google Search Grounding to fetch live web flight options, rank and format Top 3 choices, and `confirm_flight_booking`.
   - Create `app/tools/complaint_tools.py`: `record_customer_complaint` with ticket generation and SLA estimation.
+  - Create `app/tools/call_control_tools.py`: `terminate_call(reason)` for polite out-of-scope decline and call hangup.
 - **Unit Tests (`tests/test_step2_tools.py`):**
   - Authentication happy path (exact match), partial name match, and wrong birthdate rejection.
-  - Flight search returns at most 3 options sorted by ranking criteria.
+  - Real flight search parser returns at most 3 options sorted by ranking criteria.
+  - Out-of-scope query triggers `terminate_call` with polite Thai decline message.
   - Booking confirmation generates unique 6-character PNR code and persists to store.
   - Complaint submission returns formatted `TKT-YYYYMMDD-XXXX` and correct SLA.
 - **Property-Based Tests (`tests/test_step2_pbt.py`):**
-  - *Invariant 3 (Top 3 Monotonicity):* For any arbitrary number of flight matches $N \ge 0$, `len(search_flights(...)) <= 3`.
+  - *Invariant 3 (Top 3 Monotonicity):* For any arbitrary number of flight matches $N \ge 0$, `len(parsed_top_flights) <= 3`.
   - *Invariant 4 (Ticket ID Uniqueness):* Generating $K$ complaints produces $K$ mutually disjoint ticket IDs.
   - *Invariant 5 (Auth Monotonicity):* Tampered birthdates never yield `is_authenticated=True`.
+  - *Invariant 6 (Scope Enforcement Invariant):* Any classification identifying out-of-scope intent strictly triggers `terminate_call(status='CALL_TERMINATED')`.
 - **Completion Criteria:** All domain tools execute with deterministic and property tests passing.
 
 ### Step 3: Google ADK Multi-Agent Orchestration & Prompts

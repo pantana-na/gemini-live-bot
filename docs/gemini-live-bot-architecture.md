@@ -48,32 +48,35 @@
 |   +--------------------------------------------------------------------------------------------+   |
 |   |  Root Orchestrator Agent (thai_customer_orchestrator)                                      |   |
 |   |  - Role: Front-desk greeting & customer authentication in polite Thai                      |   |
-|   |  - Verifies: Name + Birthdate against Customer DB                                          |   |
+|   |  - Verifies: Name + Birthdate against 20-profile Customer DB                               |   |
 |   |  - Intent Detection: Routes to Flight Booking or Complaint Agent                          |   |
-|   +------------------------------+------------------------------+------------------------------+   |
-|                                  |                              |                                  |
-|                                  | Intent: flight_booking       | Intent: complaint_issue          |
-|                                  v                              v                                  |
-|   +---------------------------------------------+  +-------------------------------------------+   |
-|   | Flight Booking Agent (flight_booking_agent) |  | Complaint Agent (complaint_agent)         |   |
-|   | - Collects: Origin, Destination, Dates      |  | - Active listening with genuine empathy   |   |
-|   | - Action: Searches flight database/Google   |  | - Captures: Situation overview, timestamp |   |
-|   | - Presents: Top 3 curated flight choices    |  | - Generates: Incident ticket reference    |   |
-|   | - Books: Issues confirmed PNR reference     |  | - SLA: Provides resolution timeframe      |   |
-|   +----------------------+----------------------+  +--------------------+----------------------+   |
-+--------------------------|-----------------------------------------------|-------------------------+
-                           |                                               |
-                           v                                               v
+|   |  - Out-of-Scope: Politely declines, bids farewell, and executes terminate_call (hangup)   |   |
+|   +-------------------+------------------------------+---------------------+-------------------+   |
+|                       |                              |                     |                       |
+|                       | Intent: flight_booking       | Intent: complaint   | Out-of-Scope Intent   |
+|                       v                              v                     v                       |
+|   +---------------------------------------+  +------------------------+  +---------------------+   |
+|   | Flight Booking Agent                  |  | Complaint Agent        |  | Call Control Tool   |   |
+|   | (flight_booking_agent)                |  | (complaint_agent)      |  | (terminate_call)    |   |
+|   | - Collects: Origin, Dest, Dates       |  | - Genuine empathy      |  | - Polite refusal    |   |
+|   | - Action: Real Google Search Grounding|  | - Situation overview   |  | - Courteous farewell|   |
+|   | - Presents: Top 3 curated options     |  | - Generates Ticket ID  |  | - Hangup WebSocket  |   |
+|   | - Books: Confirms & issues PNR code   |  | - SLA timeframe note   |  |                     |   |
+|   +-------------------+-------------------+  +-----------+------------+  +---------------------+   |
++-----------------------|----------------------------------|-----------------------------------------+
+                        |                                  |
+                        v                                  v
 +----------------------------------------------------------------------------------------------------+
 |                                        DATA & PERSISTENCE TIER                                     |
 |                                                                                                    |
 |    +--------------------------+    +--------------------------+    +--------------------------+    |
-|    |   Customer Mock DB       |    |     Flight Mock DB       |    |   Complaint Ticket DB    |    |
-|    |   (20 Thai Profiles)     |    |   (Routes & Schedules)   |    |    (Issue Resolution)    |    |
-|    |   - ID, Thai/EN Name     |    |   - TG, PG, FD Routes    |    |   - Ticket ID            |    |
-|    |   - Birthdate (B.E./C.E.)|    |   - Fares (THB) & Seats  |    |   - Category & Severity  |    |
-|    |   - Loyalty Tier & Phone |    |   - Confirmed Bookings   |    |   - Status & Timestamps  |    |
+|    |   Customer Mock DB       |    |   Real Google Search     |    |   Complaint Ticket DB    |    |
+|    |   (20 Thai Profiles)     |    |   (Live Web Grounding)   |    |    (Issue Resolution)    |    |
+|    |   - ID, Thai/EN Name     |    |   - Real-time flights    |    |   - Ticket ID            |    |
+|    |   - Birthdate (B.E./C.E.)|    |   - Live schedules/fares |    |   - Category & Severity  |    |
+|    |   - Loyalty Tier & Phone |    |   - Booking PNR Ledger   |    |   - Status & Timestamps  |    |
 |    +--------------------------+    +--------------------------+    +--------------------------+    |
++----------------------------------------------------------------------------------------------------+
 +----------------------------------------------------------------------------------------------------+
 ```
 
