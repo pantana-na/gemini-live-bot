@@ -20,13 +20,13 @@ specs/
 ## Active Specifications Index
 
 ### 1. Baseline Specifications (`specs/baseline/`)
-*(Baseline SDDs reverse-engineered from existing code or generated during Phase 0 discovery will be indexed here, e.g., `specs/baseline/system-overview.md`.)*
+- [`specs/baseline/system-overview.md`](./baseline/system-overview.md): Baseline System Architecture, Toolchain & Governance Inventory.
 
 ### 2. Feature Specifications (`specs/features/`)
-*(Feature specifications will be indexed here as they are drafted and approved.)*
+- [`specs/features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md`](./features/SPEC-20260907-GEMINI-LIVE-ADK-THAI-VOICE-AGENT.md): Multimodal Gemini Live Thai Voice Agent Platform with Google ADK (v3.1 Flash Preview, Orchestrator Auth, Flight Booking Top 3, Empathetic Complaint Agent, 20 User Mock DB).
 
 ### 3. Plan Progress Reports (`specs/plan/`)
-*(Living execution progress reports and verification metrics are maintained here.)*
+- [`specs/plan/PROGRESS_REPORT_20260907.md`](./plan/PROGRESS_REPORT_20260907.md): Milestone Progress & Design Phase Review.
 
 ---
 

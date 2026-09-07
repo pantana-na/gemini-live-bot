@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Live Bot Architecture Diagram</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #020617;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', 'Prompt', monospace;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      margin: 0 auto;
+      max-width: 1300px;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 1.5rem;
+    }
+
+    .header-row {
+      align-items: center;
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pulse-dot {
+      animation: pulse 2s infinite;
+      background: #22d3ee;
+      border-radius: 50%;
+      height: 12px;
+      width: 12px;
+      box-shadow: 0 0 12px #22d3ee;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: #f1f5f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      border-radius: 9999px;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #38bdf833;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      border-color: #334155;
+      box-shadow: 0 8px 24px -8px rgba(0,0,0,0.5);
+    }
+
+    .card-accent-blue { border-top: 3px solid #38bdf8; }
+    .card-accent-purple { border-top: 3px solid #c084fc; }
+    .card-accent-emerald { border-top: 3px solid #34d399; }
+    .card-accent-amber { border-top: 3px solid #fbbf24; }
+
+    .card-title {
+      align-items: center;
+      display: flex;
+      gap: 0.75rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #f8fafc;
+    }
+
+    .card-icon {
+      font-size: 1.25rem;
+    }
+
+    .diagram-svg {
+      width: 100%;
+      height: auto;
+      margin: 1.5rem 0;
+      background: #030712;
+      border-radius: 0.5rem;
+      border: 1px solid #1e293b;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .spec-table th, .spec-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .spec-table th {
+      background: #0f172a;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spec-table tr:hover td {
+      background: #1e293b44;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-live { background: #064e3b; color: #6ee7b7; }
+    .status-auth { background: #1e3a8a; color: #93c5fd; }
+    .status-active { background: #581c87; color: #d8b4fe; }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #1e293b;
+      color: #64748b;
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>GEMINI LIVE BOT // SYSTEM ARCHITECTURE</h1>
+        <span class="badge">SPEC-20260907</span>
+        <span class="badge">ADK v2.3.0</span>
+        <span class="badge">gemini-3.1-flash-preview</span>
+      </div>
+      <p class="subtitle">
+        Enterprise Multimodal Voice Agent with Google Agent Development Kit (ADK), Native Thai Audio Streaming, and Hierarchical Sub-Agent Delegation (Auth Orchestrator → Flight Booking & Complaint Care).
+      </p>
+    </header>
+
+    <!-- Architecture Visual SVG -->
+    <svg class="diagram-svg" viewBox="0 0 1100 680" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background Grid -->
+      <defs>
+        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5" stroke-opacity="0.6"/>
+        </pattern>
+        <linearGradient id="cyanGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#0369a1" stop-opacity="0.05"/>
+        </linearGradient>
+        <linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#581c87" stop-opacity="0.05"/>
+        </linearGradient>
+        <linearGradient id="emeraldGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#047857" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#065f46" stop-opacity="0.05"/>
+        </linearGradient>
+      </defs>
+      <rect width="1100" height="680" fill="url(#grid)" />
+
+      <!-- Layer 1: Client Tier -->
+      <rect x="50" y="30" width="1000" height="90" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="75" y="60" fill="#38bdf8" font-size="14" font-weight="700">TIER 1: MULTIMODAL CLIENT / AUDIO INTERFACE</text>
+      <text x="75" y="85" fill="#94a3b8" font-size="12">Customer Voice (Thai Speech, 16kHz PCM) ⟷ ADK Web UI / WebSocket Bi-directional Audio Streaming</text>
+      <rect x="780" y="48" width="240" height="52" rx="4" fill="#0284c7" fill-opacity="0.2" stroke="#38bdf8" stroke-width="1"/>
+      <text x="800" y="72" fill="#e0f2fe" font-size="11" font-weight="600">WebSocket BidiStream (Audio/Json)</text>
+      <text x="800" y="90" fill="#7dd3fc" font-size="10">Sub-second Latency (~280ms)</text>
+
+      <!-- Connection 1 -->
+      <path d="M 550 120 L 550 160" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 4"/>
+      <polygon points="545,155 550,165 555,155" fill="#38bdf8"/>
+
+      <!-- Layer 2: ADK Orchestration & Gemini Live -->
+      <rect x="50" y="165" width="1000" height="140" rx="8" fill="url(#cyanGrad)" stroke="#0284c7" stroke-width="1.5"/>
+      <text x="75" y="195" fill="#38bdf8" font-size="14" font-weight="700">TIER 2: ADK LIVE RUNNER & GEMINI MULTIMODAL LIVE ENGINE (Port 8080)</text>
+      
+      <!-- Sub-box: ADK Live Runner -->
+      <rect x="80" y="215" width="450" height="70" rx="6" fill="#0f172a" stroke="#1e293b"/>
+      <text x="100" y="242" fill="#f8fafc" font-size="13" font-weight="600">Google ADK Live Runner (v2.3.0)</text>
+      <text x="100" y="265" fill="#94a3b8" font-size="11">Session context, audio buffers, tool dispatch loop & /healthz probe</text>
+
+      <!-- Sub-box: Gemini 3.1 Flash Preview -->
+      <rect x="570" y="215" width="450" height="70" rx="6" fill="#0f172a" stroke="#0284c7"/>
+      <text x="590" y="242" fill="#38bdf8" font-size="13" font-weight="600">Vertex AI Gemini 3.1 Flash Preview</text>
+      <text x="590" y="265" fill="#94a3b8" font-size="11">Real-time Thai speech recognition, reasoning & audio synthesis</text>
+
+      <!-- Connection 2 -->
+      <path d="M 550 305 L 550 345" stroke="#a855f7" stroke-width="2"/>
+      <polygon points="545,340 550,350 555,340" fill="#a855f7"/>
+
+      <!-- Layer 3: Multi-Agent Hierarchy -->
+      <rect x="50" y="350" width="1000" height="180" rx="8" fill="url(#purpleGrad)" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="75" y="380" fill="#d8b4fe" font-size="14" font-weight="700">TIER 3: HIERARCHICAL MULTI-AGENT ORCHESTRATION (ADK Native Delegation)</text>
+
+      <!-- Root Agent -->
+      <rect x="80" y="400" width="280" height="110" rx="6" fill="#1e1b4b" stroke="#818cf8"/>
+      <text x="95" y="425" fill="#c7d2fe" font-size="12" font-weight="700">ROOT ORCHESTRATOR AGENT</text>
+      <text x="95" y="445" fill="#a5b4fc" font-size="11">thai_customer_orchestrator</text>
+      <text x="95" y="470" fill="#94a3b8" font-size="10">• Welcoming Thai greeting</text>
+      <text x="95" y="488" fill="#94a3b8" font-size="10">• Auth: Name + Birthdate</text>
+      <text x="95" y="504" fill="#94a3b8" font-size="10">• Intent classification & handoff</text>
+
+      <!-- Delegation arrows -->
+      <path d="M 360 455 L 430 455" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <polygon points="425,450 435,455 425,460" fill="#c084fc"/>
+
+      <!-- Flight Booking Agent -->
+      <rect x="435" y="400" width="290" height="110" rx="6" fill="#022c22" stroke="#34d399"/>
+      <text x="450" y="425" fill="#6ee7b7" font-size="12" font-weight="700">FLIGHT BOOKING AGENT</text>
+      <text x="450" y="445" fill="#a7f3d0" font-size="11">flight_booking_agent</text>
+      <text x="450" y="470" fill="#94a3b8" font-size="10">• Origin, Destination, Dates</text>
+      <text x="450" y="488" fill="#94a3b8" font-size="10">• Flight search & Top 3 options</text>
+      <text x="450" y="504" fill="#94a3b8" font-size="10">• Booking confirmation & PNR</text>
+
+      <!-- Delegation arrows 2 -->
+      <path d="M 360 485 Q 400 520 750 485" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <polygon points="745,480 755,485 745,490" fill="#f59e0b"/>
+
+      <!-- Complaint Agent -->
+      <rect x="755" y="400" width="275" height="110" rx="6" fill="#451a03" stroke="#fbbf24"/>
+      <text x="770" y="425" fill="#fde68a" font-size="12" font-weight="700">COMPLAINT CARE AGENT</text>
+      <text x="770" y="445" fill="#fef3c7" font-size="11">complaint_agent</text>
+      <text x="770" y="470" fill="#94a3b8" font-size="10">• Empathy & sincere apology</text>
+      <text x="770" y="488" fill="#94a3b8" font-size="10">• Capture situation & timestamp</text>
+      <text x="770" y="504" fill="#94a3b8" font-size="10">• Ticket ID & SLA timeframe</text>
+
+      <!-- Connection 3 -->
+      <path d="M 550 530 L 550 560" stroke="#10b981" stroke-width="2"/>
+      <polygon points="545,555 550,565 555,555" fill="#10b981"/>
+
+      <!-- Layer 4: Data & Persistence Tier -->
+      <rect x="50" y="565" width="1000" height="90" rx="8" fill="url(#emeraldGrad)" stroke="#10b981" stroke-width="1.5"/>
+      <text x="75" y="590" fill="#6ee7b7" font-size="14" font-weight="700">TIER 4: MOCK DATASTORE LAYER (Single Source of Truth)</text>
+      
+      <rect x="80" y="605" width="280" height="40" rx="4" fill="#0f172a" stroke="#1e293b"/>
+      <text x="95" y="630" fill="#93c5fd" font-size="11">Customer Store (20 Thai Profiles)</text>
+
+      <rect x="435" y="605" width="290" height="40" rx="4" fill="#0f172a" stroke="#1e293b"/>
+      <text x="450" y="630" fill="#6ee7b7" font-size="11">Flight Inventory & Booking Ledger</text>
+
+      <rect x="755" y="605" width="275" height="40" rx="4" fill="#0f172a" stroke="#1e293b"/>
+      <text x="770" y="630" fill="#fde68a" font-size="11">Complaint Tickets (TKT-YYYYMMDD-X)</text>
+    </svg>
+
+    <!-- Grid Details -->
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+      <div class="card card-accent-blue">
+        <div class="card-title">
+          <span class="card-icon">🎙️</span>
+          <span>Voice & Gemini Live Pipeline</span>
+        </div>
+        <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+          Utilizes <code>gemini-3.1-flash-preview</code> over WebSockets with Google ADK's native live runner. Directly ingests 16kHz audio frames and streams back synthesized Thai speech with sub-300ms perceptual latency.
+        </p>
+        <table class="spec-table">
+          <tr><td>Audio In</td><td>16,000 Hz 16-bit PCM</td></tr>
+          <tr><td>Audio Out</td><td>24,000 Hz 16-bit PCM</td></tr>
+          <tr><td>Protocol</td><td>WebSocket / TLS</td></tr>
+        </table>
+      </div>
+
+      <div class="card card-accent-purple">
+        <div class="card-title">
+          <span class="card-icon">🤝</span>
+          <span>Thai Conversational Protocol</span>
+        </div>
+        <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+          Engineered specifically for Thai service culture. Maintains courteous tone with respectful endings (ครับ/ค่ะ), handles Buddhist calendar years (พ.ศ. 2533 ⟷ ค.ศ. 1990), and preserves identity state during transfers.
+        </p>
+        <table class="spec-table">
+          <tr><td>Auth Strategy</td><td>Name + Birthdate match</td></tr>
+          <tr><td>Tone Register</td><td>Professional & Empathetic</td></tr>
+          <tr><td>Fail-Safe</td><td>Max 3 auth retries → agent handoff</td></tr>
+        </table>
+      </div>
+
+      <div class="card card-accent-emerald">
+        <div class="card-title">
+          <span class="card-icon">⚡</span>
+          <span>DevOps & Security (10 Rules)</span>
+        </div>
+        <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">
+          Fully aligned with the project's DevSecOps mandate. Governed by unified <code>.env</code> file, pre-build CodeMender SAST scanning, Cloud Run liveness probes, and generative Property-Based Testing.
+        </p>
+        <table class="spec-table">
+          <tr><td>Liveness Probe</td><td><code>GET /healthz</code> (200 OK)</td></tr>
+          <tr><td>SAST Engine</td><td>CodeMender (cm CLI)</td></tr>
+          <tr><td>Testing</td><td>Unit Tests + Hypothesis PBT</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div>Repository: <code>https://github.com/pantana-na/gemini-live-bot.git</code></div>
+      <div>Project: <code>prj-gc-npr-temai-rtai-01</code> | Region: <code>asia-southeast1</code></div>
+    </footer>
+  </div>
+</body>
+</html>
