@@ -81,33 +81,19 @@ LIVE_API_MODEL=gemini-3.1-flash-live-preview
 
 ## 🖥️ How to Run Locally
 
-You can run the application in two ways depending on your testing needs:
-
-### Option A: Official Google ADK Web UI (Recommended for Interactive Testing)
-
-The ADK Web UI provides an interactive visual interface to converse with the agents, view handoffs, and inspect tool executions.
+The application runs on the official **Google Agent Development Kit (ADK) Web Server**, which serves the interactive conversational web interface, manages multimodal session state, and executes multi-agent handoffs.
 
 ```bash
 adk web --port 8000 .
 ```
 
 * **Web UI URL:** [http://localhost:8000/](http://localhost:8000/) or [http://localhost:8000/dev-ui/](http://localhost:8000/dev-ui/)
-* Discovered app: `app` (`thai_customer_orchestrator`)
+* **Discovered App:** `app` (`thai_customer_orchestrator` / `ฝน`)
+* **Health Check Endpoint:** [http://localhost:8000/health](http://localhost:8000/health)
 
----
-
-### Option B: FastAPI Streaming Server (WebSocket Endpoint & Health Probes)
-
-Runs the production-grade FastAPI server with Cloud Run health probes and bidirectional WebSocket streaming.
-
-```bash
-uvicorn app.server:app --host 0.0.0.0 --port 8080 --reload
-```
-
-* **Service Discovery:** [http://localhost:8080/api/info](http://localhost:8080/api/info)
-* **Cloud Run Liveness Probe (Rule 6):** [http://localhost:8080/healthz](http://localhost:8080/healthz)
-* **Readiness Probe:** [http://localhost:8080/readyz](http://localhost:8080/readyz)
-* **Live WebSocket Audio Endpoint:** `ws://localhost:8080/ws/live`
+> **Cloud Run / Production Execution:**  
+> In containerized deployments, the application uses the same ADK runtime as defined in [`Dockerfile`](./Dockerfile):  
+> `adk web . --host 0.0.0.0 --port ${PORT:-8080} --session_service_uri memory://`
 
 ---
 
@@ -168,17 +154,6 @@ The mock database includes 20 realistic Thai customer records in [`app/mock_data
 
 1. **User:** `"ช่วยแนะนำร้านอาหารอร่อยๆ แถวสยาม หรือแนะนำหุ้นหน่อย"`
    - **System:** **Guardrail 1B triggers:** Calls `terminate_call(reason='OUT_OF_SCOPE_INTENT')`, explains services are restricted to flight reservations and complaints, and terminates call.
-
----
-
-### Automated WebSocket Test Script
-
-An automated Python script is provided under [`scripts/test_live_ws.py`](./scripts/test_live_ws.py) to test the live WebSocket streaming server:
-
-```bash
-# Ensure FastAPI server is running (uvicorn app.server:app --port 8080)
-python scripts/test_live_ws.py
-```
 
 ---
 

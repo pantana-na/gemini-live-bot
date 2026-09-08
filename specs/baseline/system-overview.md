@@ -12,7 +12,7 @@ The **Gemini Live Bot** repository is an enterprise-grade, voice-first intellige
 | **Agent CLI** | Google Agents CLI (`agents-cli`) | 1.1.0 | Project scaffolding, evaluation, and lifecycle management. |
 | **Runtime Environment** | Python (via `uv`) | 3.13.15 | Isolated virtualenv and modern packaging. |
 | **AI Foundation Model** | Gemini Multimodal Live | `gemini-3.1-flash-preview` | Low-latency audio-in / audio-out bidirectional streaming with function calling. |
-| **Orchestration Server** | FastAPI / ADK Web Server | 0.139.0 | High-performance ASGI server with WebSockets for real-time audio streams. |
+| **Orchestration Server** | Google ADK Web Server (`adk web`) | 2.8.0 | Multimodal web runner serving interactive UI, session management, and /health probe (Port 8000 local / 8080 Cloud Run). |
 | **Configuration Governance** | Unified Multi-Environment | Rule 8 Compliant | Single `.env` and `.env.example` managing Non-Prod and Prod parameters. |
 | **Version Control** | GitHub Repository | `pantana-na/gemini-live-bot` | Multi-branch trunk-based branching model (`main` vs `prod`). |
 
@@ -55,8 +55,8 @@ gemini-live-bot/
 sequenceDiagram
     autonumber
     actor Customer as User (Voice / Audio)
-    participant Client as ADK Web Client / WebSocket
-    participant Server as ADK FastAPI Server (Port 8080)
+    participant Client as ADK Web Client (/dev-ui/)
+    participant Server as Google ADK Web Server (adk web)
     participant Model as Vertex AI Gemini 3.1 Flash Preview (Live API)
     participant Store as State & Mock Datastores
 

@@ -1,10 +1,10 @@
 # Gemini Live Bot: Technical System Architecture
 
-> Multimodal Voice-First Intelligent Customer Service Platform with Google ADK, Gemini 3.1 Flash Preview, and Hierarchical Multi-Agent Delegation.
+> Multimodal Voice-First Intelligent Customer Service Platform with Google ADK, Gemini 3.1 Flash Preview, Decentralized Sub-Agent Coordination, and Deterministic State Machine Guardrails.
 
 - **Status:** Designed & Specified
 - **Target Foundation Model:** `gemini-3.1-flash-live-preview` (Gemini Multimodal Live BidiStream via Google AI Studio API Key)
-- **Agent Framework:** Google Agent Development Kit (`google-adk v2.8.0`) & `agents-cli`
+- **Agent Framework:** Google Agent Development Kit (`google-adk v2.8.0`) & `adk web`
 - **Primary Language:** Thai (ภาษาไทย)
 - **Interactive Companion Diagram:** [`docs/gemini-live-bot-architecture.html`](./gemini-live-bot-architecture.html)
 
@@ -14,69 +14,75 @@
 
 ```
 +----------------------------------------------------------------------------------------------------+
-|                      CUSTOMER CLIENT TIER: INTERACTIVE VOICE WEB CONSOLE (Port 8080)               |
+|                         CLIENT TIER: GOOGLE ADK WEB CONSOLE (/dev-ui/)                             |
 |                                                                                                    |
 |    +----------------------------------+            +------------------------------------------+    |
-|    |      Voice Input (Microphone)    |            |         Audio Output (Speaker)           |    |
-|    |      16kHz Mono PCM Audio Worklet|            |         Low-latency streaming chunks     |    |
-|    |      Canvas Waveform Oscilloscope|            |         Live Transcript & Status Badges  |    |
+|    |      Voice / Text Input          |            |         Audio / Text Output              |    |
+|    |      Real-time Multimodal Input  |            |         Low-latency streaming responses  |    |
+|    |      Session & Trace Inspector   |            |         Agent Handoff & Tool Badges      |    |
 |    +-----------------+----------------+            +--------------------+---------------------+    |
 +----------------------|--------------------------------------------------|--------------------------+
                        |                                                  ^
-                       | WebSocket Bidirectional Audio & JSON Stream      |
+                       | ADK Event Stream & Bidirectional Session         |
                        v                                                  |
 +----------------------------------------------------------------------------------------------------+
-|                              ADK FASTAPI ORCHESTRATION LAYER (Port 8080)                           |
+|                    GOOGLE ADK WEB RUNTIME (adk web / Port 8000 local, Port 8080 Cloud Run)         |
 |                                                                                                    |
 |    +------------------------------------------------------------------------------------------+    |
-|    |  ADK Live Runner & Session Manager                                                        |    |
-|    |  - Manages WebSocket lifecycle, audio frame chunking, and session context retention      |    |
-|    |  - State: authenticated_user, customer_id, intent_stage, active_subagent                 |    |
+|    |  ADK Multi-Agent Session Manager                                                         |    |
+|    |  - Manages session lifecycle, tool declarations, and context state injection             |    |
+|    |  - ToolContext State: auth_fail_count, customer_id, customer_name, session_stage         |    |
 |    +------------------------------------------------------------------------------------------+    |
 |                                              |                                                     |
 |                                              v                                                     |
 |    +------------------------------------------------------------------------------------------+    |
-|    |  Gemini Live Multimodal Engine (gemini-3.1-flash-live-preview via API Key)               |    |
-|    |  - Real-time Audio-to-Audio reasoning & Speech-to-Speech synthesis in Thai                 |    |
-|    |  - Integrated Function Calling & Tool Execution Loop                                     |    |
+|    |  Gemini Live Multimodal Engine (gemini-3.1-flash-live-preview)                           |    |
+|    |  - Dedicated Voice Profiles: Aoede (ฝน), Kore (ก้อย), Charon (ไอติม)                     |    |
+|    |  - Real-time Function Calling & Autonomous Tool Execution Loop                           |    |
 |    +------------------------------------------------------------------------------------------+    |
 +----------------------------------------------|-----------------------------------------------------+
                                                |
                                                v
 +----------------------------------------------------------------------------------------------------+
-|                                    MULTI-AGENT DELEGATION TIER                                     |
+|                              DECENTRALIZED MULTI-AGENT COORDINATION TIER                           |
 |                                                                                                    |
 |   +--------------------------------------------------------------------------------------------+   |
-|   |  Root Orchestrator Agent (thai_customer_orchestrator)                                      |   |
-|   |  - Role: Front-desk greeting, customer authentication & continuous concierge loop         |   |
-|   |  - Verifies: Name + Birthdate against 20-profile Customer DB (Bounded at 3 attempts)       |   |
-|   |  - Intent Detection: Routes to Flight Booking or Complaint Agent                          |   |
-|   |  - Concierge Follow-up: "คุณ{name} มีบริการอื่นใดให้ทางเราช่วยดูแลเพิ่มเติมอีกไหมครับ/ค่ะ?" |   |
-|   |  - Guardrails: Politely terminates on 3 auth failures, out-of-scope requests, or done      |   |
-|   +-------------------+------------------------------+---------------------+-------------------+   |
-|                       |                              |                     |                       |
-|                       | Intent: flight_booking       | Intent: complaint   | Guardrail Triggers    |
-|                       v                              v                     v                       |
-|   +---------------------------------------+  +------------------------+  +---------------------+   |
-|   | Flight Booking Agent (ก้อย)           |  | Complaint Agent (ไอติม)|  | Call Control Tool   |   |
-|   | (flight_booking_agent)                |  | (complaint_agent)      |  | (terminate_call)    |   |
-|   | - Collects: Origin, Dest, Dates       |  | - Genuine empathy      |  | 1. AUTH_FAILURE_    |   |
-|   | - Action: Mock Flight Engine          |  | - Situation overview   |  |    EXCEEDED (Polite)|   |
-|   | - Presents: Top 3 curated options     |  | - Generates Ticket ID  |  | 2. OUT_OF_SCOPE_    |   |
-|   | - Books: Confirms & issues PNR code   |  | - SLA timeframe note   |  |    INTENT (Polite)  |   |
-|   | - Loopback: Returns to Root           |  | - Loopback: Returns    |  | 3. SESSION_         |   |
-|   +-------------------+-------------------+  +-----------+------------+  |    COMPLETED (Fare- |   |
-|                       |                                  |               |    well & Hangup)   |   |
-|                       +----------------> <---------------+               +---------------------+   |
-|                                        |                                                           |
-|                                        v (Task Complete: Return to Root for Next Service Inquiry)  |
-|                       +----------------------------------+                                         |
-|                       | Root (ฝน): "มีบริการอื่นใด       |                                         |
-|                       |  ให้ช่วยดูแลเพิ่มเติมไหมคะ?"     |                                         |
-|                       +----------------------------------+                                         |
-+----------------------------------------------------------------------------------------------------+
-                        |                                  |
-                        v                                  v
+|   |  Root Orchestrator Agent (thai_customer_orchestrator / ฝน - Voice: Aoede)                  |   |
+|   |  - Role: Front-desk greeting, customer authentication & immediate domain transfer         |   |
+|   |  - Verifies: Name + Birthdate against 20-profile Customer DB (3-attempt lockout gate)      |   |
+|   |  - Zero-Redundancy Handoff: Immediate programmatic transfer to flight or complaint agent  |   |
+|   +-------------------+------------------------------------------+-----------------------------+   |
+|                       |                                          |                                 |
+|                       | Initial Domain Transfer                  | Initial Domain Transfer         |
+|                       v                                          v                                 |
+|   +---------------------------------------+  Peer Transfer   +---------------------------------+   |
+|   | Flight Booking Agent (ก้อย - Kore)    | ◄──────────────► | Complaint Agent (ไอติม - Charon)|   |
+|   | (flight_booking_agent)                |                  | (complaint_agent)               |   |
+|   | - Search & confirm flights (Top 3)    |                  | - Empathetic grievance intake   |   |
+|   | - Confirms & issues PNR booking code  |                  | - Issues Ticket ID & SLA notice |   |
+|   | - Follow-up Inquiry: "มีบริการอื่นใด   |                  | - Follow-up Inquiry: "มีบริการ  |   |
+|   |   ให้ก้อยช่วยดูแลเพิ่มเติมไหมคะ?"      |                  |   อื่นให้ไอติมช่วยดูแลไหมครับ?" |   |
+|   +-------------------+-------------------+                  +----------------+----------------+   |
+|                       |                                                       |                    |
+|                       +───────────────────────────┬───────────────────────────+                    |
+|                                                   │                                                |
+|                                                   v                                                |
+|                                  +---------------------------------+                               |
+|                                  | route_customer_followup()       |                               |
+|                                  | (Deterministic Intent Classifier│                               |
+|                                  |  via app/intent_lexicon.py)     |                               |
+|                                  +----------------+----------------+                               |
+|                                                   │                                                |
+|                   ┌───────────────────────────────┼───────────────────────────────┐                |
+|                   ▼                               ▼                               ▼                |
+|   +-------------------------------+   +-----------------------+   +----------------------------+   |
+|   | Peer Transfer to Other Sub    |   | Same-Domain Continued |   | Polite Call Termination    |   |
+|   | (transfer_to_agent)           |   | (CONTINUE_CURRENT)    |   | (terminate_call)           |   |
+|   | - flight -> complaint         |   | - Another flight      |   | 1. SESSION_COMPLETED (Bye) |   |
+|   | - complaint -> flight         |   | - Another complaint   |   | 2. OUT_OF_SCOPE_INTENT     |   |
+|   +-------------------------------+   +-----------------------+   +----------------------------+   |
++---------------------------------------------------|------------------------------------------------+
+                                                    v
 +----------------------------------------------------------------------------------------------------+
 |                                        DATA & PERSISTENCE TIER                                     |
 |                                                                                                    |
@@ -88,39 +94,34 @@
 |    |   - Loyalty Tier & Phone |    |   - Booking PNR Ledger   |    |   - Status & Timestamps  |    |
 |    +--------------------------+    +--------------------------+    +--------------------------+    |
 +----------------------------------------------------------------------------------------------------+
-+----------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
 ## 2. Component Detail & Interaction Specifications
 
-### 2.1 Audio & Streaming Protocol
-- **Transport:** WebSocket over TLS (`wss://`) terminating on Cloud Run FastAPI service.
-- **Payload Format:** 16,000 Hz, 16-bit linear PCM mono audio input; 24,000 Hz PCM audio output.
-- **Model Endpoint:** Gemini Developer API Multimodal Live streaming endpoint using `gemini-3.1-flash-live-preview` (authenticated via `GEMINI_API_KEY` with Vertex AI toggle support).
-- **Latency Optimization:** Direct streaming chunking; function calling execution happens in an asynchronous event loop without dropping the voice channel.
+### 2.1 Runtime & Delivery
+- **Server Runtime:** Official Google Agent Development Kit Web Server (`adk web .`).
+- **Interactive UI:** Served at `/dev-ui/` with built-in trace inspection, tool logs, and agent handoff indicators.
+- **Port Strategy:** Port 8000 for local development, Port 8080 on Google Cloud Run via `Dockerfile`.
+- **Health Endpoint:** Standard ADK `/health` endpoint for Cloud Run container liveness probes.
 
-### 2.2 Agent Delegation, Concierge Loop & Guardrail Terminations
-- **State Preservation:** When `thai_customer_orchestrator` transfers control to `flight_booking_agent` or `complaint_agent`, customer authentication details (`customer_id`, `name_th`, `loyalty_tier`) are passed in `Session.state`.
-- **Context Injection:** Sub-agents inherit the conversational memory and greeting context so the customer does not have to repeat their identity.
-- **Continuous Concierge Loop:** Upon task completion by a sub-agent (flight confirmed or complaint logged), conversation control yields back to `thai_customer_orchestrator`, which immediately prompts: *"คุณ{name} มีบริการอื่นใดให้ทางเราช่วยดูแลเพิ่มเติมอีกไหมครับ/ค่ะ?"*. The loop repeats continuously until the customer confirms completion or requests an out-of-scope task.
-- **Dual Polite Guardrail Terminations (`terminate_call`):**
-  1. *3-Strike Auth Failure (`AUTH_FAILURE_EXCEEDED`):* If identity cannot be verified within 3 attempts, orchestrator politely explains the account security limit, bids farewell in Thai, and cleanly disconnects.
-  2. *Out-of-Scope Intent (`OUT_OF_SCOPE_INTENT`):* If customer asks for unsupported or prohibited services, orchestrator politely refuses in Thai, clarifies scope, bids farewell, and cleanly disconnects.
-  3. *Graceful Completion (`SESSION_COMPLETED`):* When customer indicates all requests are fulfilled ("ไม่มีแล้ว / ขอบคุณครับ"), orchestrator offers a warm travel wish, bids farewell, and cleanly disconnects.
+### 2.2 Decentralized Sub-Agent Coordination & Concierge Workflow
+- **State Preservation:** When `thai_customer_orchestrator` transfers control, customer authentication details (`customer_id`, `name_th`, `loyalty_tier`) are persisted in `tool_context.state`.
+- **Identity Fallback:** Sub-agents automatically inherit authenticated identity from `tool_context.state` without requesting the customer repeat their details.
+- **Autonomous Sub-Agent Coordination:** Upon completing their respective domain tasks (flight confirmed or complaint logged):
+  1. Sub-agents verbally confirm the task outcome with their own voice (PNR reference code or Ticket ID + SLA).
+  2. Sub-agents ask the customer directly: *"มีบริการอื่นใดให้[ชื่อเจ้าหน้าที่]ช่วยดูแลเพิ่มเติมอีกไหมคะ/ครับ?"*
+  3. The customer's answer is evaluated deterministically by calling `route_customer_followup(customer_response=...)`.
+- **Deterministic Follow-Up Routing (`route_customer_followup`):**
+  - **Peer Transfer:** Seamlessly transfers laterally between `flight_booking_agent` and `complaint_agent` via `tool_context.actions.transfer_to_agent`.
+  - **Continued Service:** Keeps conversation within the active agent if the user requests additional tasks in the same domain.
+  - **Graceful Termination:** Terminates politely via `terminate_call` when the user confirms completion (`SESSION_COMPLETED`) or asks for unsupported tasks (`OUT_OF_SCOPE_INTENT`).
 
-### 2.3 Data Stores & Search Grounding
-1. **Mock Customer Store (20 Records):**
-   - Realistic Thai naming distribution and Buddhist calendar birthdate conversion.
-   - Dual-language matching (Thai script & English romanization).
-2. **Mock Flight Discovery Engine (`search_real_flights`):**
-   - Simulated carrier schedule and fare generator based on 4 representative airlines (Thai Airways, Bangkok Airways, Thai AirAsia, Nok Air).
-   - Dynamic route multiplier (5.5x for international destinations) and Top-3 selection algorithm.
-   - Confirmed bookings recorded to in-memory PNR ledger.
-3. **Mock Complaint Ticket Store:**
-   - Sequential ticket generation: `TKT-YYYYMMDD-XXXX`.
-   - Category mapping: Flight Delay, Baggage, In-flight Service, Ticketing, Ground Staff.
+### 2.3 Unified Intent Lexicon (`app/intent_lexicon.py`)
+- Single canonical dictionary (`COMPLAINT_KEYWORDS`, `FLIGHT_KEYWORDS`, `COMPLETION_KEYWORDS`, `CLARIFICATION_KEYWORDS`).
+- Common classifier `detect_customer_intent(text)` shared across `authenticate_customer` and `route_customer_followup`.
+- Complaint intent is evaluated before flight keywords to prevent false-positives when flight terms appear in complaint descriptions.
 
 ---
 
@@ -135,11 +136,11 @@ flowchart LR
     subgraph Google Cloud Platform
         CB[Cloud Build Trigger]
         AR[Artifact Registry: cloudrun-app]
-        CR[Cloud Run Service: gemini-live-bot-nonprod]
-        LP["Liveness Probe (/healthz)"]
-        CL[Cloud Logging: JSON Traces]
+        CR["Cloud Run Service: adk web (Port 8080)"]
+        LP["Liveness Probe (/health)"]
+        CL[Cloud Logging: ADK JSON Traces]
         CM[Cloud Monitoring: Latency & Errors]
-        VAI[Vertex AI Gemini 3.1 Live API]
+        VAI[Gemini 3.1 Flash Live Multimodal API]
     end
 
     Repo -->|Commit / PR| CB
@@ -148,15 +149,17 @@ flowchart LR
     CR --> LP
     CR --> CL
     CR --> CM
-    CR <-->|BidiStream WebSockets| VAI
+    CR <-->|BidiStream Multimodal Sessions| VAI
 ```
 
 ---
 
 ## 4. Architectural Invariants
+
 1. **Zero Unauthenticated Bookings:** `flight_booking_agent` requires a verified customer session before executing final booking.
 2. **Bounded Authentication Gate:** $\ge 3$ failed verification attempts strictly triggers `terminate_call(reason="AUTH_FAILURE_EXCEEDED")` with polite explanation.
 3. **Strict Scope Gate:** Out-of-scope or unauthorized requests strictly trigger `terminate_call(reason="OUT_OF_SCOPE_INTENT")` with polite refusal.
 4. **Deterministic Top 3:** Flight recommendations must return exactly 3 ranked choices when 3 or more flights are available.
 5. **Universal Empathy Standard:** `complaint_agent` must acknowledge customer inconvenience in polite Thai before capturing problem taxonomy.
-6. **Continuous Concierge Re-engagement:** Sub-agent completion strictly transfers control back to the root orchestrator for follow-up inquiry until the customer concludes (`SESSION_COMPLETED`).
+6. **Decentralized Concierge Re-engagement:** Sub-agents conduct follow-up inquiry directly using `route_customer_followup`, routing laterally to peer sub-agents or terminating gracefully without unnecessary bounce-back to root.
+7. **Canonical Intent Symmetry:** Intent classification in the root orchestrator (`authenticate_customer`) and sub-agents (`route_customer_followup`) must use the identical canonical lexicon in `app/intent_lexicon.py`.

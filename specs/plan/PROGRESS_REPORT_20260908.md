@@ -38,6 +38,7 @@ This release delivers two foundational architectural improvements:
 | **Step 11** | Live Server WebSocket Integration | `app/server.py` | Complete | Live tool mapping & event streaming |
 | **Step 12** | Living Spec Synchronization & Tracking | `specs/README.md`<br/>`specs/features/*`<br/>`specs/plan/*` | Complete | Full test suite passed (67/67 tests) |
 | **Step 13** | Canonical Intent Lexicon & Orchestrator/Sub-Agent Harmonization | `app/intent_lexicon.py`<br/>`app/tools/auth_tools.py`<br/>`app/tools/coordination_tools.py` | Complete | Unified keyword dictionary & `detect_customer_intent` |
+| **Step 14** | Single Runtime Consolidation & Architecture Sync | `README.md`<br/>`docs/gemini-live-bot-architecture.*`<br/>`specs/baseline/system-overview.md` | Complete | Removed Option B, unified around `adk web`, updated HTML/MD diagrams |
 
 ---
 
