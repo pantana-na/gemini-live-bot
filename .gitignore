@@ -6,6 +6,10 @@ __pycache__/
 .venv/
 env/
 venv/
+.pytest_cache/
+.hypothesis/
+.adk/
+scratch/
 
 # Environment Variables & Secrets
 .env
@@ -30,3 +34,4 @@ Thumbs.db
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+.cm_project
