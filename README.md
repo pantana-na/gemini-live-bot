@@ -106,9 +106,9 @@ The mock database includes 20 realistic Thai customer records in [`app/mock_data
 | Customer ID | Name (Thai) | Date of Birth | Loyalty Tier |
 | :--- | :--- | :--- | :--- |
 | **`CUST-001`** | **สมชาย ใจดี** | `15 มกราคม 2533` (1990-01-15) | Gold |
-| **`CUST-002`** | **สมศรี มีสุข** | `22 กุมภาพันธ์ 2538` (1995-02-22) | Platinum |
-| **`CUST-003`** | **กิตติศักดิ์ รัตนดิลก** | `8 มีนาคม 2528` (1985-03-08) | Silver |
-| **`CUST-004`** | **นภา พิมลวรรณ** | `14 เมษายน 2541` (1998-04-14) | Standard |
+| **`CUST-002`** | **วรรณภา สุขสมบูรณ์** | `20 พฤษภาคม 2528` (1985-05-20) | Platinum |
+| **`CUST-003`** | **กิตติศักดิ์ รัตนดิลก** | `8 พฤศจิกายน 2535` (1992-11-08) | Silver |
+| **`CUST-004`** | **ชลธิชา พงษ์ไพโรจน์** | `25 มีนาคม 2541` (1998-03-25) | Standard |
 
 ---
 
@@ -128,7 +128,7 @@ The mock database includes 20 realistic Thai customer records in [`app/mock_data
 
 ### Scenario 2: Complaint Filing & Lateral Peer Transfer
 
-1. **User:** `"สวัสดีครับ ผมกิตติศักดิ์ รัตนดิลก เกิด 8 มีนาคม 2528 อยากร้องเรียนเรื่องกระเป๋าหายครับ"`
+1. **User:** `"สวัสดีครับ ผมกิตติศักดิ์ รัตนดิลก เกิด 8 พฤศจิกายน 2535 อยากร้องเรียนเรื่องกระเป๋าหายครับ"`
    - **Agent (`ฝน` - Orchestrator):** Authenticates customer $\to$ triggers immediate transfer to Complaint Specialist (`ไอติม`).
 2. **Agent (`ไอติม` - Complaint):** Introduces himself empathetically, asks for incident details in 2–3 question sets.
 3. **User:** `"บินมาจากโตเกียวเมื่อวาน กระเป๋าไม่มากับเที่ยวบิน ต้องการให้ช่วยติดตามด่วนครับ"`
