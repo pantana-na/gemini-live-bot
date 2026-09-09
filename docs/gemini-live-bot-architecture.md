@@ -101,10 +101,11 @@
 ## 2. Component Detail & Interaction Specifications
 
 ### 2.1 Runtime & Delivery
-- **Server Runtime:** Official Google Agent Development Kit Web Server (`adk web .`).
+- **Cloud Deployment Platform:** Google Cloud **Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `reasoningEngines`) deployed natively via `agents-cli deploy --deployment-target agent_runtime` (or `adk deploy agent_engine`).
+- **Local Dev Server:** Official Google Agent Development Kit Web Server (`adk web .`) on port 8000.
 - **Interactive UI:** Served at `/dev-ui/` with built-in trace inspection, tool logs, and agent handoff indicators.
-- **Port Strategy:** Port 8000 for local development, Port 8080 on Google Cloud Run via `Dockerfile`.
-- **Health Endpoint:** Standard ADK `/health` endpoint for Cloud Run container liveness probes.
+- **Manifest Governance:** Governed by `agents-cli-manifest.yaml` and `.agent_engine_config.json`.
+- **Health & Readiness:** Native Vertex AI Agent Engine health and instance lifecycle state checks (`api_resource.state == ACTIVE`).
 
 ### 2.2 Decentralized Sub-Agent Coordination & Concierge Workflow
 - **State Preservation:** When `thai_customer_orchestrator` transfers control, customer authentication details (`customer_id`, `name_th`, `loyalty_tier`) are persisted in `tool_context.state`.
@@ -135,21 +136,21 @@ flowchart LR
 
     subgraph Google Cloud Platform
         CB[Cloud Build Trigger]
-        AR[Artifact Registry: cloudrun-app]
-        CR["Cloud Run Service: adk web (Port 8080)"]
-        LP["Liveness Probe (/health)"]
-        CL[Cloud Logging: ADK JSON Traces]
-        CM[Cloud Monitoring: Latency & Errors]
+        ACLI["Agents CLI: agents-cli deploy<br/>(--deployment-target agent_runtime)"]
+        VAE["Vertex AI Agent Engine (Gemini Enterprise Agent Platform)<br/>projects/*/locations/asia-southeast1/reasoningEngines/*"]
+        CT[Cloud Trace: GenAI Message & Latency Spans]
+        CL[Cloud Logging: Agent Decision Traces]
+        SM[Secret Manager: GEMINI_API_KEY]
         VAI[Gemini 3.1 Flash Live Multimodal API]
     end
 
     Repo -->|Commit / PR| CB
-    CB -->|Build & Tag| AR
-    AR -->|Deploy Revision| CR
-    CR --> LP
-    CR --> CL
-    CR --> CM
-    CR <-->|BidiStream Multimodal Sessions| VAI
+    CB -->|Run Tests & Deploy| ACLI
+    ACLI -->|Deploy Agent Runtime| VAE
+    SM -->|Inject Credentials| VAE
+    VAE -->|Auto Export Spans| CT
+    VAE -->|Structured Logs| CL
+    VAE <-->|BidiStream Multimodal Sessions| VAI
 ```
 
 ---

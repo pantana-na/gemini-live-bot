@@ -47,36 +47,38 @@ In addition to Spec-Driven Development (SDD), all software engineering, reposito
 
 ---
 
-## Rule 5: Multi-Environment Cloud Build Automation & Artifact Registry Storage
-1. **Branch-Aware Automated Builds:** Use **Google Cloud Build** (`cloudbuild.yaml`) as the automated build, test, and deployment engine mapped to the active branch:
-   - Commits to the **Non-Prod branch** trigger automated builds and deployment targeting the **Non-Prod environment**.
-   - Merges/tags on the **Prod branch** trigger production verification and deployment targeting the **Production environment**.
-2. **Artifact Registry Repository & Environment Tagging:**
-   - Container images and deployment packages are stored in **Google Cloud Artifact Registry**.
-   - Container image tags must include immutable identifiers with environment tagging (e.g., `${_ENVIRONMENT}-${SHORT_SHA}`, semantic release tags).
-3. **Isolated & Reproducible Builds:** Builds must execute within containerized Cloud Build steps without host-specific assumptions.
+## Rule 5: Multi-Environment Agent CLI Pipeline Automation & Vertex AI Agent Engine Deployment
+1. **Deployment Mandate via Agent CLI:**
+   - All AI agent deployments targeting cloud environments must be executed using the unified **Google Agents CLI** (`agents-cli deploy --deployment-target agent_runtime` or `adk deploy agent_engine`), deploying natively onto **Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `projects/{project}/locations/{region}/reasoningEngines/{id}`).
+   - Custom, unmanaged container orchestration is replaced by the managed Agent Engine runtime, providing native session state, multimodal live streaming, and secure tool execution.
+2. **Manifest-Driven Deployment Configuration:**
+   - Deployment parameters, agent source directory (`app`), target region, session backend, and CI/CD runner are declaratively configured in `agents-cli-manifest.yaml` (with `.agent_engine_config.json`).
+3. **Multi-Environment Branch Strategy:**
+   - Commits to the **Non-Prod branch** trigger automated Cloud Build pipelines deploying the agent runtime targeting the **Non-Prod Agent Engine instance** (`gemini-live-bot-nonprod`).
+   - Pull requests to the **Prod branch** promote validated agent configurations to the **Production Agent Engine instance** (`gemini-live-bot-prod`).
+4. **Isolated & Reproducible Packaging:**
+   - Agent dependencies, environment specifications, and secrets from Google Secret Manager (`--secrets=GEMINI_API_KEY=gemini-api-key:latest`) are staged and deployed securely via Agents CLI without local environment leakage.
 
 ---
 
-## Rule 6: Cloud Run Observability (Liveness Probes, Logging & Monitoring)
-1. **Liveness & Health Probes:**
-   - Applications running on Cloud Run must expose a dedicated health endpoint (`/healthz` or `/api/health`).
-   - Cloud Run service configuration must declare a **Liveness Probe** (and Startup Probe if required) pointing to this endpoint to detect unresponsiveness and auto-restart failed containers.
-2. **Cloud Logging:**
-   - Application logs must output structured JSON or standard log streams to stdout/stderr.
-   - Cloud Logging must capture all request logs, AI model proxy latencies, and error stack traces.
+## Rule 6: Vertex AI Agent Engine Observability, Telemetry & Cloud Trace
+1. **Native OpenTelemetry & Cloud Trace Integration:**
+   - Agent deployments to Vertex AI Agent Engine must enable Cloud Trace and GenAI span telemetry (`GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY=true`, `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true`).
+   - All user conversation turns, multi-agent lateral transfers, tool calls, and LLM completions must be automatically captured in Google Cloud Trace and Cloud Logging.
+2. **Health & Lifecycle Probes:**
+   - Agent runtime operational state must be verified via the Vertex AI Agent Engine API (`api_resource.state == ACTIVE`), validating reasoning engine instance readiness and multimodal socket availability.
 3. **Cloud Monitoring:**
-   - Configure Cloud Monitoring dashboards and alert policies for container health, CPU/memory utilization, request latency (p95/p99), 5xx error rates, and Gemini API quota consumption.
+   - Configure Cloud Monitoring dashboards and alert policies for Agent Engine inference latencies (p95/p99), quota utilization, tool execution error rates, and connection lifecycles.
 
 ---
 
-## Rule 7: Post-Deployment Integration & Smoke Testing
-1. **Automated Post-Deploy Verification:** Immediately after deploying a new revision to Cloud Run, an automated integration/smoke test step must execute against the deployed service URL.
+## Rule 7: Post-Deployment Verification & Smoke Testing via Agent CLI
+1. **Automated Post-Deploy Verification:** Immediately after deploying an Agent Engine revision via `agents-cli deploy`, automated smoke tests must run against the deployed Vertex AI Agent Engine resource (`agents-cli deploy --status` and live agent test inference).
 2. **Verification Scope:**
-   - Liveness probe verification (`GET /healthz`).
-   - Core API functionality verification (e.g. backend proxy connectivity, authentication handshake).
-   - End-to-end sanity check ensuring the deployed revision is fully operational.
-3. **Automated Rollback on Failure:** If post-deployment integration tests fail, deployment notifications must alert the team, and traffic shifting/rollback must be triggered.
+   - Agent instance operational status verification (`api_resource.state == ACTIVE`).
+   - Core multi-agent turn execution (greeting, authentication, tool invocation).
+   - Live session connectivity and error-free response streaming.
+3. **Automated Rollback on Failure:** If post-deployment smoke tests fail, deployment notifications must alert the team, and previous stable revision pointers restored.
 
 ---
 
@@ -85,22 +87,22 @@ In addition to Spec-Driven Development (SDD), all software engineering, reposito
 2. **Unified Multi-Environment Configuration File:**
    - Parameters for **both Non-Prod and Prod environments** must be maintained in the **same unified `.env` file** (with a documented template in `.env.example`).
    - The `.env` file structure organizes variables into:
-     - **Shared / Core Section:** Base settings common to all environments (e.g., `GCP_PROJECT`, `GCP_REGION`, `GENAI_LOCATION`, `DEFAULT_MODEL`, `ARTIFACT_REGISTRY_REPO`, `GITHUB_REPO`).
-     - **Non-Prod Configuration Block (`NONPROD_*`):** Non-prod specific values (e.g., `NONPROD_ENVIRONMENT_NAME=development`, `NONPROD_FRONTEND_SERVICE_NAME`, `NONPROD_BACKEND_SERVICE_NAME`, `NONPROD_DEPLOYMENT_ID`, `NONPROD_MIN_INSTANCES=0`, `NONPROD_MAX_INSTANCES=5`, service accounts).
-     - **Prod Configuration Block (`PROD_*`):** Prod specific values (e.g., `PROD_ENVIRONMENT_NAME=production`, `PROD_FRONTEND_SERVICE_NAME`, `PROD_BACKEND_SERVICE_NAME`, `PROD_DEPLOYMENT_ID`, `PROD_MIN_INSTANCES=1`, `PROD_MAX_INSTANCES=10`, service accounts).
+     - **Shared / Core Section:** Base settings common to all environments (e.g., `GCP_PROJECT`, `GCP_REGION`, `GENAI_LOCATION`, `DEFAULT_MODEL`, `AGENT_DEPLOYMENT_TARGET`, `GITHUB_REPO`).
+     - **Non-Prod Configuration Block (`NONPROD_*`):** Non-prod specific values (e.g., `NONPROD_ENVIRONMENT_NAME=development`, `NONPROD_AGENT_ENGINE_ID`, `NONPROD_SERVICE_NAME`, `NONPROD_MIN_INSTANCES=0`, `NONPROD_MAX_INSTANCES=5`, service accounts).
+     - **Prod Configuration Block (`PROD_*`):** Prod specific values (e.g., `PROD_ENVIRONMENT_NAME=production`, `PROD_AGENT_ENGINE_ID`, `PROD_SERVICE_NAME`, `PROD_MIN_INSTANCES=1`, `PROD_MAX_INSTANCES=10`, service accounts).
    - CI/CD pipelines, build scripts, and local runners resolve the appropriate configuration block dynamically based on the active Git branch or target environment selection.
 3. **Secret Isolation:**
    - Sensitive credentials (e.g., API keys, service account keys) must NEVER be committed to GitHub.
    - Local development uses `.env` (ignored by `.gitignore`).
-   - Cloud environments supply configuration via Cloud Build substitutions, Cloud Run environment variables, or Google Cloud Secret Manager.
+   - Cloud environments supply configuration via Cloud Build substitutions, Agent Engine deployment parameters, or Google Cloud Secret Manager.
 
 ---
 
 ## Rule 9: Multi-Environment IaC & Deployment via Terraform & Google Cloud Infrastructure Manager
 1. **Infrastructure as Code (IaC):**
-   - Cloud infrastructure resources (Cloud Run services, Artifact Registry repositories, IAM roles, service accounts, monitoring alerts) are declaratively codified in **Terraform** (`terraform/` directory), parameterized to support multiple environment deployments from a single codebase.
+   - Cloud infrastructure resources (Vertex AI PSC Network Attachments, IAM roles, service accounts, Secret Manager secrets) are declaratively codified in **Terraform** (`terraform/` directory), parameterized to support multiple environment deployments from a single codebase.
 2. **Independent Infrastructure Manager Deployments:**
-   - Non-Prod and Prod environments are provisioned as independent **Google Cloud Infrastructure Manager** deployments (e.g., `phenol-container-nonprod` vs `phenol-container-prod`), ensuring complete isolation of Terraform state, service lifecycle, and scaling profiles.
+   - Non-Prod and Prod environments are provisioned as independent **Google Cloud Infrastructure Manager** deployments (e.g., `gemini-live-bot-infra-nonprod` vs `gemini-live-bot-infra-prod`), ensuring complete isolation of Terraform state, service lifecycle, and scaling profiles.
 3. **Reproducible & Tracked Deployments:**
    - Infrastructure Manager deployment revisions must be tied to specific Git commits/SHAs, branch names, and Cloud Build runs.
    - Drift detection and automated rollbacks must be supported through Infrastructure Manager deployment manifests.

@@ -1,0 +1,13 @@
+name: gemini-live-bot
+agent_directory: app
+region: asia-southeast1
+base_template: adk
+language: python
+version: 1.1.0
+acli_version: 1.1.0
+create_params:
+  deployment_target: agent_runtime
+  session_type: memory
+  cicd_runner: cloud_build
+  agent_guidance_filename: GEMINI.md
+  is_a2a: false

@@ -1,0 +1,15 @@
+{
+  "display_name": "gemini-live-bot",
+  "description": "Multimodal Voice-First Thai Airline Customer Service Platform on Gemini Enterprise Agent Platform",
+  "location": "asia-southeast1",
+  "agent_directory": "app",
+  "deployment_target": "agent_runtime",
+  "min_instances": 1,
+  "max_instances": 10,
+  "cpu": 1,
+  "memory": "4Gi",
+  "telemetry": {
+    "enable_cloud_trace": true,
+    "enable_open_telemetry": true
+  }
+}

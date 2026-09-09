@@ -79,23 +79,115 @@ LIVE_API_MODEL=gemini-3.1-flash-live-preview
 
 ---
 
-## 🖥️ How to Run Locally
+## 🖥️ How to Test App Locally
 
-The application runs on the official **Google Agent Development Kit (ADK) Web Server**, which serves the interactive conversational web interface, manages multimodal session state, and executes multi-agent handoffs.
+### 1. Start the Interactive ADK Web Interface
+The application runs on the official **Google Agent Development Kit (ADK) Web Server**, which manages multimodal session state, audio streaming, and multi-agent handoffs:
 
 ```bash
+# Start the ADK Web Server on port 8000
 adk web --port 8000 .
 ```
 
-* **Web UI URL:** [http://localhost:8000/](http://localhost:8000/) or [http://localhost:8000/dev-ui/](http://localhost:8000/dev-ui/)
-* **Discovered App:** `app` (`thai_customer_orchestrator` / `ฝน`)
-* **Health Check Endpoint:** [http://localhost:8000/health](http://localhost:8000/health)
+* **Interactive Web Console:** [http://localhost:8000/dev-ui/](http://localhost:8000/dev-ui/) (or [http://localhost:8000/](http://localhost:8000/))
+* **Discovered Application:** `app` ([`thai_customer_orchestrator`](./app/agent.py) / Voice persona: **ฝน**)
+* **Health Endpoint:** [http://localhost:8000/health](http://localhost:8000/health) (`{"status": "ok"}`)
+* **App Metadata:** [http://localhost:8000/apps/app/app-info](http://localhost:8000/apps/app/app-info)
 
-> **Cloud Run / Production Execution:**  
-> In containerized deployments, the application uses the same ADK runtime as defined in [`Dockerfile`](./Dockerfile):  
-> `adk web . --host 0.0.0.0 --port ${PORT:-8080} --session_service_uri memory://`
+### 2. Alternative: Command-Line Single Prompt Run
+You can also run direct prompts via ADK CLI:
+```bash
+adk run app "สวัสดีครับ ผมสมชาย ใจดี เกิด 15 มกราคม 2533 อยากเช็คเที่ยวบินไปเชียงใหม่ครับ"
+```
+
+### 3. Run the Automated Test Suite
+The repository includes **67 automated unit and property-based tests** (Hypothesis generative testing):
+```bash
+pytest -v
+```
 
 ---
+
+## 🚀 How to Deploy to Cloud (Vertex AI Agent Engine)
+
+The application deploys natively to **Google Cloud Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `reasoningEngines`) using the unified **Google Agents CLI (`agents-cli`)**.
+
+### 1. Automated Deployment via `scripts/deploy.sh` (Recommended)
+
+The [`scripts/deploy.sh`](./scripts/deploy.sh) script automatically extracts and validates configuration parameters directly from your unified [`.env`](./.env) file:
+
+```bash
+# Preview deployment configuration without modifying cloud resources (Dry-Run)
+./scripts/deploy.sh nonprod --dry-run
+./scripts/deploy.sh prod --dry-run
+
+# Deploy to Non-Production Agent Engine
+./scripts/deploy.sh nonprod
+
+# Deploy to Production Agent Engine
+./scripts/deploy.sh prod
+
+# Check status of deployed Agent Engine service
+./scripts/deploy.sh --status
+```
+
+#### How `.env` Parameters are Mapped by `deploy.sh`:
+- **Shared Settings:** Resolves `GCP_PROJECT`, `GCP_REGION` (default: `asia-southeast1`), `AGENT_DEPLOYMENT_TARGET=agent_runtime`, and `LIVE_API_MODEL`.
+- **Non-Prod Block (`NONPROD_*`):** Maps `NONPROD_SERVICE_NAME`, `NONPROD_CPU=1`, `NONPROD_MEMORY=4Gi`, `NONPROD_MIN_INSTANCES=0`, and `NONPROD_MAX_INSTANCES=5`.
+- **Prod Block (`PROD_*`):** Maps `PROD_SERVICE_NAME`, `PROD_CPU=1`, `PROD_MEMORY=4Gi`, `PROD_MIN_INSTANCES=1`, and `PROD_MAX_INSTANCES=10`.
+- **Secrets:** Binds `GEMINI_API_KEY` from Google Secret Manager (`GEMINI_SECRET_NAME`).
+
+---
+
+### 2. Manual Deployment via Google Agents CLI (`agents-cli`)
+
+You can also invoke `agents-cli` directly:
+
+```bash
+# 1. Inspect Project Metadata & Manifest
+agents-cli info
+
+# 2. Preview deployment
+agents-cli deploy --dry-run
+
+# 3. Deploy to Vertex AI Agent Engine
+agents-cli deploy \
+  --deployment-target agent_runtime \
+  --project=your-gcp-project-id \
+  --region=asia-southeast1 \
+  --service-name=gemini-live-bot-nonprod \
+  --cpu=1 \
+  --memory=4Gi \
+  --min-instances=0 \
+  --max-instances=5 \
+  --secrets=GEMINI_API_KEY=gemini-api-key:latest \
+  --update-env-vars=ENVIRONMENT=nonprod,LIVE_API_MODEL=gemini-3.1-flash-live-preview,GOOGLE_GENAI_USE_VERTEXAI=TRUE
+
+# 4. Check deployment status
+agents-cli deploy --status
+```
+
+* **Project Manifest:** [`agents-cli-manifest.yaml`](./agents-cli-manifest.yaml)
+* **Agent Platform Config:** [`.agent_engine_config.json`](./.agent_engine_config.json)
+
+---
+
+### 3. Native ADK CLI Alternative
+
+You can also deploy directly using native Google ADK CLI:
+```bash
+adk deploy agent_engine \
+  --project=your-gcp-project-id \
+  --region=asia-southeast1 \
+  --service_name=gemini-live-bot \
+  app
+```
+
+---
+
+### 4. Continuous Deployment via Cloud Build (CI/CD)
+
+The repository provides [`cloudbuild.yaml`](./cloudbuild.yaml) which automatically runs tests, invokes `agents-cli deploy`, and verifies post-deployment status upon Git pushes to `main` (Non-Prod) and `prod` (Prod).
 
 ## 🧪 Test Scenarios & Test Scripts
 

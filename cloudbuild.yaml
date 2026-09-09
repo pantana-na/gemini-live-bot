@@ -1,55 +1,50 @@
 # Google Cloud Build Pipeline for Gemini Live Bot
-# Conforms to Google Cloud DevOps, Security & Quality Standards (Rules 5, 6 & 10)
+# Conforms to Google Cloud DevOps, Security & Quality Standards (Rules 5, 6 & 7)
+# Mandates deployment via Google Agents CLI to Vertex AI Agent Engine (Gemini Enterprise Agent Platform)
 
 substitutions:
   _ENVIRONMENT: "nonprod"
   _REGION: "asia-southeast1"
-  _ARTIFACT_REGISTRY: "cloudrun-app"
   _SERVICE_NAME: "gemini-live-bot-nonprod"
 
 steps:
-  # Step 1: Build hardened Docker container image
-  - name: "gcr.io/cloud-builders/docker"
-    id: "build-image"
+  # Step 1: Run Static Quality Analysis & Automated Test Suite (Rule 2 & 4)
+  - name: "python:3.13-slim"
+    id: "run-tests"
+    entrypoint: "bash"
     args:
-      - "build"
-      - "-t"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot:${_ENVIRONMENT}-${SHORT_SHA}"
-      - "-t"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot:${_ENVIRONMENT}-latest"
-      - "."
+      - "-c"
+      - |
+        pip install --no-cache-dir -e . pytest
+        pytest tests/ -v
 
-  # Step 2: Push image to Google Cloud Artifact Registry
-  - name: "gcr.io/cloud-builders/docker"
-    id: "push-image"
+  # Step 2: Deploy to Vertex AI Agent Engine via Google Agents CLI (Rule 5 & Rule 6)
+  - name: "python:3.13-slim"
+    id: "deploy-agent-engine"
+    entrypoint: "bash"
     args:
-      - "push"
-      - "--all-tags"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot"
+      - "-c"
+      - |
+        pip install --no-cache-dir google-agents-cli google-adk
+        agents-cli deploy \
+          --deployment-target agent_runtime \
+          --project=${PROJECT_ID} \
+          --region=${_REGION} \
+          --service-name=${_SERVICE_NAME} \
+          --memory=4Gi \
+          --cpu=1 \
+          --secrets=GEMINI_API_KEY=gemini-api-key:latest \
+          --update-env-vars=ENVIRONMENT=${_ENVIRONMENT},LIVE_API_MODEL=gemini-3.1-flash-live-preview,GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_LOCATION=${_REGION}
 
-  # Step 3: Deploy revision to Google Cloud Run
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    id: "deploy-cloud-run"
-    entrypoint: "gcloud"
+  # Step 3: Post-Deployment Status & Integration Verification (Rule 7)
+  - name: "python:3.13-slim"
+    id: "verify-deployment"
+    entrypoint: "bash"
     args:
-      - "run"
-      - "deploy"
-      - "${_SERVICE_NAME}"
-      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot:${_ENVIRONMENT}-${SHORT_SHA}"
-      - "--region=${_REGION}"
-      - "--platform=managed"
-      - "--port=8080"
-      - "--cpu=2"
-      - "--memory=2Gi"
-      - "--min-instances=0"
-      - "--max-instances=10"
-      - "--liveness-probe=path=/health,initialDelaySeconds=5,periodSeconds=15,timeoutSeconds=3,failureThreshold=3"
-      - "--set-env-vars=ENVIRONMENT=${_ENVIRONMENT},LIVE_API_MODEL=gemini-3.1-flash-live-preview,GOOGLE_GENAI_USE_VERTEXAI=FALSE"
-      - "--set-secrets=GEMINI_API_KEY=gemini-api-key:latest"
-
-images:
-  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot:${_ENVIRONMENT}-${SHORT_SHA}"
-  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY}/gemini-live-bot:${_ENVIRONMENT}-latest"
+      - "-c"
+      - |
+        pip install --no-cache-dir google-agents-cli
+        agents-cli deploy --status
 
 options:
   logging: CLOUD_LOGGING_ONLY

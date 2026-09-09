@@ -27,10 +27,12 @@ specs/
 - [`specs/features/SPEC-20260908-DECENTRALIZED-SUBAGENT-COORDINATION.md`](./features/SPEC-20260908-DECENTRALIZED-SUBAGENT-COORDINATION.md): Decentralized Sub-Agent Coordination & Autonomous Concierge Loop in Google ADK (Post-service inquiry, peer transfer between flight & complaint agents, and autonomous terminations).
 - [`specs/features/SPEC-20260908-TOOL-CONTEXT-STATE-DETERMINISM.md`](./features/SPEC-20260908-TOOL-CONTEXT-STATE-DETERMINISM.md): ToolContext State Determinism: Auth Counter, Session Identity & Stage Machine (Deterministic 3-attempt auth failure guardrail, customer profile injection, and lifecycle stage machine).
 - [`specs/features/SPEC-20260908-FOLLOWUP-INTENT-ROUTING-TOOL.md`](./features/SPEC-20260908-FOLLOWUP-INTENT-ROUTING-TOOL.md): Follow-Up Intent Routing Tool: Programmatic Sub-Agent Handoff & Session Guardrails (`route_customer_followup`, Thai keyword lexicon, programmatic peer transfer, deterministic termination).
+- [`specs/features/SPEC-20260909-VERTEX-AI-AGENT-ENGINE-DEPLOYMENT.md`](./features/SPEC-20260909-VERTEX-AI-AGENT-ENGINE-DEPLOYMENT.md): Deployment via Google Agents CLI onto Vertex AI Agent Engine / Gemini Enterprise Agent Platform (`agents-cli deploy --deployment-target agent_runtime`, manifest governance, OpenTelemetry Cloud Trace).
 
 ### 3. Plan Progress Reports (`specs/plan/`)
 - [`specs/plan/PROGRESS_REPORT_20260907.md`](./plan/PROGRESS_REPORT_20260907.md): Full Implementation Progress Report (Steps 0–5 & Step 11 Complete, 48/48 Unit & PBT Tests Passing, Invariants 1–11 Verified, Hybrid Supervisor Intent Transfer Guardrail).
 - [`specs/plan/PROGRESS_REPORT_20260908.md`](./plan/PROGRESS_REPORT_20260908.md): Decentralized Sub-Agent Coordination, ToolContext State Determinism & Follow-Up Intent Routing Report (67/67 Unit & PBT Tests Passing, Invariants 5b, 9b, 9, 10, 11 Verified, Zero-Trust State Enforcement).
+- [`specs/plan/PROGRESS_REPORT_20260909.md`](./plan/PROGRESS_REPORT_20260909.md): Vertex AI Agent Engine Deployment & Agents CLI Transition Report (Manifest integration, Cloud Build pipeline update, OpenTelemetry telemetry, 67/67 tests passing).
 
 ---
 

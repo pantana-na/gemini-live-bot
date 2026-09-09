@@ -12,8 +12,9 @@ The **Gemini Live Bot** repository is an enterprise-grade, voice-first intellige
 | **Agent CLI** | Google Agents CLI (`agents-cli`) | 1.1.0 | Project scaffolding, evaluation, and lifecycle management. |
 | **Runtime Environment** | Python (via `uv`) | 3.13.15 | Isolated virtualenv and modern packaging. |
 | **AI Foundation Model** | Gemini Multimodal Live | `gemini-3.1-flash-preview` | Low-latency audio-in / audio-out bidirectional streaming with function calling. |
-| **Orchestration Server** | Google ADK Web Server (`adk web`) | 2.8.0 | Multimodal web runner serving interactive UI, session management, and /health probe (Port 8000 local / 8080 Cloud Run). |
-| **Configuration Governance** | Unified Multi-Environment | Rule 8 Compliant | Single `.env` and `.env.example` managing Non-Prod and Prod parameters. |
+| **Deployment Platform** | Vertex AI Agent Engine (`reasoningEngines`) | Enterprise | Managed Gemini Enterprise Agent Platform runtime deployed via `agents-cli deploy`. |
+| **Local Web Runner** | Google ADK Web Server (`adk web`) | 2.8.0 | Multimodal local dev web runner serving interactive UI, session management, and /health probe (Port 8000). |
+| **Configuration Governance** | Unified Multi-Environment | Rule 8 Compliant | Single `.env`, `.env.example`, and `agents-cli-manifest.yaml` managing parameters. |
 | **Version Control** | GitHub Repository | `pantana-na/gemini-live-bot` | Multi-branch trunk-based branching model (`main` vs `prod`). |
 
 ---

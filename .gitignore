@@ -15,6 +15,7 @@ scratch/
 .env
 .env.local
 .env.*.local
+.agent_engine_deployment.json
 
 # Node & Frontend
 node_modules/
