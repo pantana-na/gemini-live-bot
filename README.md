@@ -276,8 +276,8 @@ pytest -v
 
 ## 📚 Governance & Documentation
 
-- **System Specifications:** [`specs/README.md`](./specs/README.md)
+- **System Specifications Index:** [`specs/README.md`](./specs/README.md)
+- **Canonical Unified Specification:** [`specs/features/SPEC-SYSTEM-UNIFIED.md`](./specs/features/SPEC-SYSTEM-UNIFIED.md)
 - **Baseline Architecture:** [`specs/baseline/system-overview.md`](./specs/baseline/system-overview.md)
-- **Feature Specs:** [`specs/features/`](./specs/features/)
-- **Living Execution Progress:** [`specs/plan/PROGRESS_REPORT_20260908.md`](./specs/plan/PROGRESS_REPORT_20260908.md)
-- **Architecture Diagrams:** [`docs/gemini-live-bot-architecture.md`](./docs/gemini-live-bot-architecture.md)
+- **Living Execution Progress:** [`specs/plan/PROGRESS_REPORT_20260909.md`](./specs/plan/PROGRESS_REPORT_20260909.md)
+- **Architecture Diagrams & Topology:** [`docs/gemini-live-bot-architecture.md`](./docs/gemini-live-bot-architecture.md)
