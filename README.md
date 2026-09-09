@@ -108,38 +108,47 @@ pytest -v
 
 ---
 
-## 🚀 How to Deploy to Cloud (Vertex AI Agent Engine)
+## 🚀 How to Deploy to Cloud
 
-The application deploys natively to **Google Cloud Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `reasoningEngines`) using the unified **Google Agents CLI (`agents-cli`)**.
+The platform architecture provides a **dual-tier cloud topology**:
+1. **Core Agent Intelligence:** Deployed to **Vertex AI Agent Engine** (`reasoningEngines`) via `agents-cli`.
+2. **Interactive Multimodal Testing UI:** Deployed to **Google Cloud Run** running the containerized ADK Web UI (`/dev-ui/`) with public/domain unauthenticated ingress (Rule 10 Pattern 3).
 
 ### 1. Automated Deployment via `scripts/deploy.sh` (Recommended)
 
 The [`scripts/deploy.sh`](./scripts/deploy.sh) script automatically extracts and validates configuration parameters directly from your unified [`.env`](./.env) file:
 
 ```bash
-# Preview deployment configuration without modifying cloud resources (Dry-Run)
-./scripts/deploy.sh nonprod --dry-run
-./scripts/deploy.sh prod --dry-run
+# Preview deployment without modifying cloud resources (Dry-Run)
+./scripts/deploy.sh nonprod web --dry-run
+./scripts/deploy.sh nonprod agent --dry-run
 
-# Deploy to Non-Production Agent Engine
-./scripts/deploy.sh nonprod
+# Deploy the Interactive Web UI Companion to Cloud Run (Browser Access)
+./scripts/deploy.sh nonprod web
 
-# Deploy to Production Agent Engine
-./scripts/deploy.sh prod
+# Deploy the Multi-Agent Engine to Vertex AI Agent Engine
+./scripts/deploy.sh nonprod agent
 
-# Check status of deployed Agent Engine service
+# Deploy both Vertex AI Agent Engine & Cloud Run Web UI
+./scripts/deploy.sh nonprod all
+
+# Check status of deployed Vertex AI Agent Engine
 ./scripts/deploy.sh --status
 ```
 
-#### How `.env` Parameters are Mapped by `deploy.sh`:
-- **Shared Settings:** Resolves `GCP_PROJECT`, `GCP_REGION` (default: `asia-southeast1`), `AGENT_DEPLOYMENT_TARGET=agent_runtime`, and `LIVE_API_MODEL`.
-- **Non-Prod Block (`NONPROD_*`):** Maps `NONPROD_SERVICE_NAME`, `NONPROD_CPU=1`, `NONPROD_MEMORY=4Gi`, `NONPROD_MIN_INSTANCES=0`, and `NONPROD_MAX_INSTANCES=5`.
-- **Prod Block (`PROD_*`):** Maps `PROD_SERVICE_NAME`, `PROD_CPU=1`, `PROD_MEMORY=4Gi`, `PROD_MIN_INSTANCES=1`, and `PROD_MAX_INSTANCES=10`.
-- **Secrets:** Binds `GEMINI_API_KEY` from Google Secret Manager (`GEMINI_SECRET_NAME`).
+### 2. Live Cloud Access Links (Non-Prod)
+
+* **🌐 Interactive Browser Web Console (ADK Web on Cloud Run):**
+  👉 **[https://gemini-live-bot-web-nonprod-cwmwtobz3a-as.a.run.app/dev-ui/](https://gemini-live-bot-web-nonprod-cwmwtobz3a-as.a.run.app/dev-ui/)**
+  *(Direct browser microphone streaming, real-time audio playback, sub-agent handoffs & inspector)*
+* **🩺 Public Health Endpoint:**
+  👉 **[https://gemini-live-bot-web-nonprod-cwmwtobz3a-as.a.run.app/health](https://gemini-live-bot-web-nonprod-cwmwtobz3a-as.a.run.app/health)** (`{"status": "ok"}`)
+* **⚙️ Vertex AI Agent Engine Console:**
+  👉 **[Vertex AI Reasoning Engine Console](https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/asia-southeast1/agent-engines/7481648861434347520?project=cs-poc-y03r7kmfyov4kilzg50fd7s)**
 
 ---
 
-### 2. Manual Deployment via Google Agents CLI (`agents-cli`)
+### 3. Manual Deployment via Google Agents CLI (`agents-cli`)
 
 You can also invoke `agents-cli` directly:
 

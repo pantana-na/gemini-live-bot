@@ -53,11 +53,17 @@ This milestone establishes **Google Agents CLI (`agents-cli`)** and **Vertex AI 
   - `tests/test_step3_agents.py` & `test_step3_pbt.py`: 14/14 passed.
   - `tests/test_step4_server.py` & `test_step4_pbt.py`: 8/8 passed.
 - **Live Deployment Verification:**
-  - **Service Name:** `gemini-live-bot-nonprod`
-  - **Environment:** `nonprod` (`development`)
-  - **Reasoning Engine Resource ID:** `projects/114618371568/locations/asia-southeast1/reasoningEngines/7481648861434347520`
-  - **Runtime Service Account:** `114618371568-compute@developer.gserviceaccount.com`
-  - **Created At:** `2026-09-09 04:15:16.328459+00:00`
-  - **Status:** Active / Operational
-  - **Cloud Console:** `https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/asia-southeast1/agent-engines/7481648861434347520?project=cs-poc-y03r7kmfyov4kilzg50fd7s`
+  - **Vertex AI Agent Engine (Backend Reasoning Platform):**
+    - **Service Name:** `gemini-live-bot-nonprod`
+    - **Reasoning Engine Resource ID:** `projects/114618371568/locations/asia-southeast1/reasoningEngines/7481648861434347520`
+    - **Runtime Service Account:** `114618371568-compute@developer.gserviceaccount.com`
+    - **Status:** Active / Operational
+    - **Cloud Console:** `https://console.cloud.google.com/vertex-ai/agents/agent-engines/locations/asia-southeast1/agent-engines/7481648861434347520?project=cs-poc-y03r7kmfyov4kilzg50fd7s`
+  - **Google Cloud Run (Interactive ADK Web UI Companion):**
+    - **Service Name:** `gemini-live-bot-web-nonprod`
+    - **Status:** Active (Serving 100% traffic, Revision `gemini-live-bot-web-nonprod-00001-7t2`)
+    - **Ingress Strategy:** Rule 10 Pattern 3 (`run.googleapis.com/invoker-iam-disabled: "true"`, `ingress: "all"`)
+    - **Live Web Console URL:** `https://gemini-live-bot-web-nonprod-cwmwtobz3a-as.a.run.app/dev-ui/`
+    - **Health Probe Status:** `200 OK` / `{"status":"ok"}`
+
 

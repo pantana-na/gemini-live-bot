@@ -100,12 +100,13 @@
 
 ## 2. Component Detail & Interaction Specifications
 
-### 2.1 Runtime & Delivery
-- **Cloud Deployment Platform:** Google Cloud **Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `reasoningEngines`) deployed natively via `agents-cli deploy --deployment-target agent_runtime` (or `adk deploy agent_engine`).
-- **Local Dev Server:** Official Google Agent Development Kit Web Server (`adk web .`) on port 8000.
-- **Interactive UI:** Served at `/dev-ui/` with built-in trace inspection, tool logs, and agent handoff indicators.
+### 2.1 Runtime & Dual-Tier Delivery
+- **Platform Backend:** Google Cloud **Vertex AI Agent Engine** (the Gemini Enterprise Agent Platform runtime, `reasoningEngines`) deployed via `agents-cli deploy --deployment-target agent_runtime`.
+- **Cloud Testing Web UI Companion:** Google **Cloud Run** (`gemini-live-bot-web-nonprod` / `gemini-live-bot-web-prod`) providing public browser access to `/dev-ui/` with direct unauthenticated ingress (`run.googleapis.com/invoker-iam-disabled: "true"` conforming to Rule 10 Pattern 3).
+- **Local Dev Server:** Official Google Agent Development Kit Web Server (`adk web .`) on port 8000/8001.
+- **Interactive UI:** Served at `/dev-ui/` with built-in trace inspection, tool logs, audio waveforms, and agent handoff indicators.
 - **Manifest Governance:** Governed by `agents-cli-manifest.yaml` and `.agent_engine_config.json`.
-- **Health & Readiness:** Native Vertex AI Agent Engine health and instance lifecycle state checks (`api_resource.state == ACTIVE`).
+- **Health & Readiness:** Native Vertex AI Agent Engine health (`ACTIVE`) and Cloud Run liveness probe (`/health`).
 
 ### 2.2 Decentralized Sub-Agent Coordination & Concierge Workflow
 - **State Preservation:** When `thai_customer_orchestrator` transfers control, customer authentication details (`customer_id`, `name_th`, `loyalty_tier`) are persisted in `tool_context.state`.
@@ -130,27 +131,29 @@
 
 ```mermaid
 flowchart LR
-    subgraph GitHub
-        Repo["pantana-na/gemini-live-bot (main / prod)"]
+    subgraph Client ["Client Tier"]
+        Browser["User Web Browser<br/>(Chrome / Safari / Edge)"]
     end
 
     subgraph Google Cloud Platform
-        CB[Cloud Build Trigger]
-        ACLI["Agents CLI: agents-cli deploy<br/>(--deployment-target agent_runtime)"]
-        VAE["Vertex AI Agent Engine (Gemini Enterprise Agent Platform)<br/>projects/*/locations/asia-southeast1/reasoningEngines/*"]
+        CR["Google Cloud Run (Web UI Companion)<br/>gemini-live-bot-web-nonprod<br/>/dev-ui/ & /health"]
+        ACLI["Agents CLI: scripts/deploy.sh<br/>(targets: agent, web, all)"]
+        VAE["Vertex AI Agent Engine<br/>projects/*/locations/asia-southeast1/reasoningEngines/*"]
         CT[Cloud Trace: GenAI Message & Latency Spans]
         CL[Cloud Logging: Agent Decision Traces]
         SM[Secret Manager: GEMINI_API_KEY]
         VAI[Gemini 3.1 Flash Live Multimodal API]
     end
 
-    Repo -->|Commit / PR| CB
-    CB -->|Run Tests & Deploy| ACLI
-    ACLI -->|Deploy Agent Runtime| VAE
+    Browser -->|HTTPS / WSS /dev-ui/| CR
+    ACLI -->|Deploy Web UI| CR
+    ACLI -->|Deploy Reasoning Engine| VAE
     SM -->|Inject Credentials| VAE
+    SM -->|Inject Credentials| CR
     VAE -->|Auto Export Spans| CT
     VAE -->|Structured Logs| CL
     VAE <-->|BidiStream Multimodal Sessions| VAI
+    CR <-->|BidiStream Multimodal Sessions| VAI
 ```
 
 ---
